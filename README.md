@@ -13,6 +13,7 @@ Compatibility
 The `composer.json` file in each branch indicates Doctrine2 compatibility.
 Additionally, several tags are available:
 
+ * `1.2.x` for Doctrine 2.4
  * `1.1.x` for Doctrine 2.3
  * `1.0.x` for Doctrine 2.2
 
