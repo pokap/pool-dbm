@@ -7,7 +7,7 @@ class ClassMetadataFactoryDebug extends ClassMetadataFactory
     /**
      * {@inheritDoc}
      */
-    protected function doLoadMetadata($class, $parent, $rootEntityFound, array $nonSuperclassParents = array())
+    protected function doLoadMetadata($class, $parent, $rootEntityFound, array $nonSuperclassParents)
     {
         if (!$class instanceof ClassMetadata) {
             throw new \InvalidArgumentException(sprintf('Class must by instance of Pok\\PoolDBM\\Mapping\\ClassMetadata, ', gettype($class)));

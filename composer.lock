@@ -1,24 +1,29 @@
 {
-    "hash": "59dbf9d549ac52f915a52486d2745134",
+    "hash": "5b3f73ab32719767f41fb83e9ebd874d",
     "packages": [
         {
             "name": "doctrine/common",
-            "version": "2.2.3",
+            "version": "2.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/common",
-                "reference": "2.2.3"
+                "reference": "2.3.0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/doctrine/common/zipball/2.2.3",
-                "reference": "2.2.3",
+                "url": "https://github.com/doctrine/common/zipball/2.3.0",
+                "reference": "2.3.0",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.2"
             },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.3.x-dev"
+                }
+            },
             "autoload": {
                 "psr-0": {
                     "Doctrine\\Common": "lib/"
@@ -26,7 +31,7 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "LGPL"
+                "MIT"
             ],
             "authors": [
                 {
@@ -63,7 +68,7 @@
                 "persistence",
                 "spl"
             ],
-            "time": "2012-08-29 01:04:14"
+            "time": "2012-09-19 22:55:18"
         },
         {
             "name": "symfony/yaml",
