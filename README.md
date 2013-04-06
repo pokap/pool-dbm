@@ -16,6 +16,12 @@ Additionally, several tags are available:
  * `1.1.x` for Doctrine 2.3
  * `1.0.x` for Doctrine 2.2
 
+Next Improvement
+-------------
+
+Support of reference one and many to other multi-model.
+With cascade persist, remove, etc.
+
 Usage
 -------------
 
