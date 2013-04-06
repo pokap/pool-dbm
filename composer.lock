@@ -1,5 +1,5 @@
 {
-    "hash": "6edd8e0df5098f8f237467313ac037e8",
+    "hash": "59dbf9d549ac52f915a52486d2745134",
     "packages": [
         {
             "name": "doctrine/common",
@@ -66,18 +66,18 @@
             "time": "2012-08-29 01:04:14"
         },
         {
-            "name": "symfony/console",
-            "version": "v2.2.0",
-            "target-dir": "Symfony/Component/Console",
+            "name": "symfony/yaml",
+            "version": "v2.2.1",
+            "target-dir": "Symfony/Component/Yaml",
             "source": {
                 "type": "git",
-                "url": "https://github.com/symfony/Console.git",
-                "reference": "v2.2.0"
+                "url": "https://github.com/symfony/Yaml.git",
+                "reference": "v2.2.1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Console/zipball/v2.2.0",
-                "reference": "v2.2.0",
+                "url": "https://api.github.com/repos/symfony/Yaml/zipball/v2.2.1",
+                "reference": "v2.2.1",
                 "shasum": ""
             },
             "require": {
@@ -91,7 +91,7 @@
             },
             "autoload": {
                 "psr-0": {
-                    "Symfony\\Component\\Console\\": ""
+                    "Symfony\\Component\\Yaml\\": ""
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -108,9 +108,9 @@
                     "homepage": "http://symfony.com/contributors"
                 }
             ],
-            "description": "Symfony Console Component",
+            "description": "Symfony Yaml Component",
             "homepage": "http://symfony.com",
-            "time": "2013-03-01 06:43:14"
+            "time": "2013-03-23 07:49:54"
         }
     ],
     "packages-dev": [
