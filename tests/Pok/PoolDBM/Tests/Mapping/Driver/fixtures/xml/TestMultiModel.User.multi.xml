@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+
+<multi-model model="TestMultiModel\User">
+
+    <model-reference manager="document" field="id" />
+
+    <model manager="entity" name="Entity\User">
+        <field name="name" />
+    </model>
+
+    <model manager="document" name="Document\User">
+        <field name="profileContent" />
+    </model>
+
+</multi-model>

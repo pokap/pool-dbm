@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified">
+
+  <xsd:element name="doctrine-multi-mapping" type="doctrine-multi-mapping" />
+
+  <xsd:complexType name="doctrine-multi-mapping">
+    <xsd:choice maxOccurs="unbounded" minOccurs="0">
+      <xsd:element name="models" type="models" />
+    </xsd:choice>
+  </xsd:complexType>
+
+  <xsd:complexType name="models">
+    <xsd:sequence>
+      <xsd:element name="model-reference" type="model-reference" maxOccurs="1" />
+      <xsd:element name="model" type="model" maxOccurs="unbounded" />
+    </xsd:sequence>
+    <xsd:attribute name="name" type="xsd:string" />
+    <xsd:attribute name="repository-name" type="xsd:string" />
+  </xsd:complexType>
+
+  <xsd:complexType name="model-reference">
+    <xsd:attribute name="manager" type="xsd:string" />
+    <xsd:attribute name="field" type="xsd:string" />
+  </xsd:complexType>
+
+  <xsd:complexType name="model">
+    <xsd:sequence>
+      <xsd:element name="field" type="element" minOccurs="1" maxOccurs="unbounded" />
+    </xsd:sequence>
+    <xsd:attribute name="manager" type="xsd:string" />
+    <xsd:attribute name="name" type="xsd:string" />
+    <xsd:attribute name="repository-method" type="xsd:string" />
+  </xsd:complexType>
+
+  <xsd:complexType name="element">
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:string">
+        <xsd:attribute name="name" type="xsd:string" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+</xsd:schema>

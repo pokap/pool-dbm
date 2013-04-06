@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="pok.doctrine_multi.manager.class">Pok\Bundle\DoctrineMultiBundle\ModelManager</parameter>
+        <parameter key="pok.doctrine_multi.command.view">PokDoctrineMultiBundle:Command:multi_model.php.twig</parameter>
+
+        <!-- metadata -->
+        <parameter key="pok.doctrine_multi.metadata.driver_chain.class">Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain</parameter>
+        <parameter key="pok.doctrine_multi.metadata.xml.class">Pok\Bundle\DoctrineMultiBundle\Mapping\Driver\XmlDriver</parameter>
+
+        <!-- directories -->
+        <parameter key="pok.doctrine_multi.mapping_dirs" type="collection"></parameter>
+        <parameter key="pok.doctrine_multi.xml_mapping_dirs">%pok.doctrine_multi.mapping_dirs%</parameter>
+    </parameters>
+
+    <services>
+        <!-- metadata -->
+        <service id="pok.doctrine_multi.metadata.chain" class="%pok.doctrine_multi.metadata.driver_chain.class%" />
+        <service id="pok.doctrine_multi.metadata.xml" class="%pok.doctrine_multi.metadata.xml.class%">
+            <argument>%pok.doctrine_multi.xml_mapping_dirs%</argument>
+        </service>
+
+        <service id="pok.doctrine_multi.manager" class="%pok.doctrine_multi.manager.class%">
+            <argument type="collection" />
+        </service>
+    </services>
+
+</container>
