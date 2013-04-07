@@ -5,6 +5,8 @@ namespace Pok\PoolDBM\Mapping\Driver;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\Persistence\Mapping\Driver\FileDriver;
 
+use Pok\PoolDBM\Mapping\ClassMetadataInfo;
+
 /**
  * XmlDriver.
  *
@@ -47,10 +49,10 @@ class XmlDriver extends FileDriver
     }
 
     /**
-     * @param ClassMetadata     $class
+     * @param ClassMetadataInfo $class
      * @param \SimpleXMLElement $reference
      */
-    protected function setModelReference(\Pok\PoolDBM\Mapping\ClassMetadata $class, \SimpleXMLElement $reference)
+    protected function setModelReference(ClassMetadataInfo $class, \SimpleXMLElement $reference)
     {
         $parameters = $reference->attributes();
 
@@ -58,12 +60,12 @@ class XmlDriver extends FileDriver
     }
 
     /**
-     * @param ClassMetadata     $class
+     * @param ClassMetadataInfo $class
      * @param \SimpleXMLElement $model
      *
      * @throws \InvalidArgumentException When the definition cannot be parsed
      */
-    protected function addModel(ClassMetadata $class, \SimpleXMLElement $model)
+    protected function addModel(ClassMetadataInfo $class, \SimpleXMLElement $model)
     {
         $fields = array();
 

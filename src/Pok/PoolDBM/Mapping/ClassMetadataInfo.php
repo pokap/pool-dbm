@@ -38,6 +38,13 @@ class ClassMetadataInfo implements ClassMetadataInterface
     protected $fieldMappings = array();
 
     /**
+     * The ReflectionClass instance of the mapped class.
+     *
+     * @var \ReflectionClass
+     */
+    public $reflClass;
+
+    /**
      * Constructor.
      *
      * @param string $modelName
@@ -241,7 +248,11 @@ class ClassMetadataInfo implements ClassMetadataInterface
      */
     public function getReflectionClass()
     {
-        return null;
+        if (!$this->reflClass) {
+            $this->reflClass = new \ReflectionClass($this->name);
+        }
+
+        return $this->reflClass;
     }
 
     /**

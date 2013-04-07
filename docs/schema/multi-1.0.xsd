@@ -3,9 +3,9 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     elementFormDefault="qualified">
 
-  <xsd:element name="doctrine-multi-mapping" type="doctrine-multi-mapping" />
+  <xsd:element name="multi-model" type="multi-model" />
 
-  <xsd:complexType name="doctrine-multi-mapping">
+  <xsd:complexType name="multi-model">
     <xsd:choice maxOccurs="unbounded" minOccurs="0">
       <xsd:element name="models" type="models" />
     </xsd:choice>
