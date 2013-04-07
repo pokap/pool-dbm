@@ -2,13 +2,13 @@
     "name": "pokap/pool-dbm",
     "type": "library",
     "description": "Multiple gbd manager",
-    "keywords": ["multiple", "repositories", "managers", "pool", "sgbd"],
+    "keywords": ["multiple", "repositories", "managers", "pool", "dbms", "doctrine"],
     "license": "MIT",
     "authors": [
         {"name": "Florent Denis", "email": "dflorent.pokap@gmail.com"}
     ],
     "support": {
-        "issues": "https://github.com/pokap/poolgdb/issues"
+        "issues": "https://github.com/pokap/pool-dbm/issues"
     },
     "require": {
         "php": ">=5.3.2",
