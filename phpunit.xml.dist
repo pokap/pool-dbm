@@ -12,7 +12,7 @@
          bootstrap="./tests/bootstrap.php"
 >
     <testsuites>
-        <testsuite name="Pool-GBD Test Suite">
+        <testsuite name="Pool-DBM Test Suite">
             <directory>./tests/Pok</directory>
         </testsuite>
     </testsuites>
@@ -21,7 +21,7 @@
         <whitelist>
             <directory>./</directory>
             <exclude>
-                <directory suffix="*.php">./src/Pok/PoolGBD</directory>
+                <directory suffix="*.php">./src/Pok/PoolDBM</directory>
             </exclude>
         </whitelist>
     </filter>
