@@ -280,6 +280,24 @@ class ModelManager implements ObjectManager
     }
 
     /**
+     * Executes a function in a transaction.
+     *
+     * If an exception occurs during execution of the function or flushing or transaction commit,
+     * the transaction is rolled back, close and exception re-throw.
+     *
+     * If the manager who throw the exception do not support the transaction, he will try to remove
+     * model saved with success.
+     *
+     * @param callable $func The function to execute transactional
+     *
+     * @return mixed The non-empty value returned from the closure or model instead
+     */
+    public function transactional($func)
+    {
+        throw new \RuntimeException('Not implemented yet.');
+    }
+
+    /**
      * Sets the EventManager used by the ModelManager.
      *
      * @param EventManager $eventManager

@@ -110,6 +110,18 @@ class ModelManagerDebug extends ModelManager
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function transactional($func)
+    {
+        if (!is_callable($func)) {
+            throw new \InvalidArgumentException('Expected argument of type "callable", got "' . gettype($func) . '"');
+        }
+
+        return parent::transactional($func);
+    }
+
+    /**
      * @param mixed $model
      *
      * @throws \InvalidArgumentException
