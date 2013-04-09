@@ -20,6 +20,14 @@ class ClassMetadataFactoryDebug extends ClassMetadataFactory
     }
 
     /**
+     * {@inheritDoc}
+     */
+    protected function newClassMetadataInstance($className)
+    {
+        return new ClassMetadataDebug($className);
+    }
+
+    /**
      * Validates the identifier mapping.
      *
      * @param ClassMetadata $class
