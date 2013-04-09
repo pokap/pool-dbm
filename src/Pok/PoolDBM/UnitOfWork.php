@@ -54,11 +54,22 @@ class UnitOfWork
      */
     public function persist($model)
     {
-        $class = $this->manager->getClassMetadata(get_class($model));
-        $pool  = $this->manager->getPool();
+        $class    = $this->manager->getClassMetadata(get_class($model));
+        $managers = $class->getFieldManagerNames();
+        $pool     = $this->manager->getPool();
 
-        foreach ($class->getFieldManagerNames() as $managerName) {
-            $pool->getManager($managerName)->persist($model->{'get' . ucfirst($managerName)}());
+        $managerName  = $class->getManagerReferenceGenerator();
+        $managerModel = $model->{'get' . ucfirst($managerName)}();
+
+        $pool->getManager($managerName)->persist($managerModel);
+
+        unset($managers[$managerName]);
+
+        foreach ($managers as $managerName) {
+            $managerModel = $model->{'get' . ucfirst($managerName)}();
+            $managerModel->setId($managerModel->getId());
+
+            $pool->getManager($managerName)->persist($managerModel);
         }
     }
 

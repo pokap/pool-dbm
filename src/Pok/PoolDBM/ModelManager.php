@@ -291,40 +291,27 @@ class ModelManager implements ObjectManager
      * @param callable $func The function to execute transactional
      *
      * @return mixed The non-empty value returned from the closure or model instead
+     *
+     * @throws \Exception When transaction fail
      */
     public function transactional($func)
     {
-        throw new \RuntimeException('Not implemented yet.');
-    }
+        $transaction = new Transaction($this);
+        $transaction->beginTransaction();
 
-    /**
-     * Sets the EventManager used by the ModelManager.
-     *
-     * @param EventManager $eventManager
-     */
-    public function setEventManager(EventManager $eventManager)
-    {
-        $this->eventManager = $eventManager;
-    }
+        try {
+            $return = call_user_func($func, $transaction);
 
-    /**
-     * Returns if an EventManager used by the ModelManager.
-     *
-     * @@return boolean
-     */
-    public function hasEventManager()
-    {
-        return null !== $this->eventManager;
-    }
+            $this->flush();
+            $transaction->commit();
 
-    /**
-     * Gets the EventManager used by the ModelManager.
-     *
-     * @return EventManager
-     */
-    public function getEventManager()
-    {
-        return $this->eventManager;
+            return $return ?: true;
+        } catch (\Exception $e) {
+            $this->close();
+            $transaction->rollback();
+
+            throw $e;
+        }
     }
 
     /**
