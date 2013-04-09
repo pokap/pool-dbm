@@ -2,6 +2,7 @@
 
 namespace Pok\PoolDBM;
 
+use Doctrine\Common\EventManager;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\Common\Persistence\ObjectManager;
 
@@ -52,6 +53,11 @@ class ModelManager implements ObjectManager
      * @var bool
      */
     private $closed = false;
+
+    /**
+     * @var EventManager
+     */
+    private $eventManager;
 
     /**
      * Constructor.
@@ -271,6 +277,36 @@ class ModelManager implements ObjectManager
         }
 
         return true;
+    }
+
+    /**
+     * Sets the EventManager used by the ModelManager.
+     *
+     * @param EventManager $eventManager
+     */
+    public function setEventManager(EventManager $eventManager)
+    {
+        $this->eventManager = $eventManager;
+    }
+
+    /**
+     * Returns if an EventManager used by the ModelManager.
+     *
+     * @@return boolean
+     */
+    public function hasEventManager()
+    {
+        return null !== $this->eventManager;
+    }
+
+    /**
+     * Gets the EventManager used by the ModelManager.
+     *
+     * @return EventManager
+     */
+    public function getEventManager()
+    {
+        return $this->eventManager;
     }
 
     /**
