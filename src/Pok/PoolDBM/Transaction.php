@@ -5,22 +5,15 @@ namespace Pok\PoolDBM;
 class Transaction
 {
     private $manager;
-    private $queueActions;
-    private $queueModels;
-
-    const ACTION_PERSIST = 0;
-    const ACTION_REMOVE  = 1;
 
     public function __construct(ModelManager $manager)
     {
         $this->manager = $manager;
-
-        $this->queueActions = array();
-        $this->queueModels  = array();
     }
 
     public function beginTransaction()
     {
+        // @todo move to a guesser-pass with name "transaction"
         foreach ($this->manager->getPool()->getIterator() as $manager) {
             if (method_exists('beginTransaction', $manager)) {
                 $manager->beginTransaction();
@@ -30,22 +23,17 @@ class Transaction
 
     public function persist($model)
     {
-//        $this->queueActions[] = self::ACTION_PERSIST;
-//        $this->queueModels[]  = $model;
-
         $this->manager->persist($model);
     }
 
     public function remove($model)
     {
-//        $this->queueActions[] = self::ACTION_REMOVE;
-//        $this->queueModels[]  = $model;
-
         $this->manager->remove($model);
     }
 
     public function commit()
     {
+        // @todo move to a guesser-pass with name "transaction"
         foreach ($this->manager->getPool()->getIterator() as $manager) {
             if (method_exists('commit', $manager)) {
                 $manager->commit();
@@ -55,21 +43,11 @@ class Transaction
 
     public function rollback()
     {
-//        for ($i = count($this->queueActions); $i > 0; $i--) {
-//            if ($this->queueActions[$i] === self::ACTION_PERSIST) {
-//                $this->manager->remove($this->queueModels[$i]);
-//            } else {
-//                $this->manager->persist($this->queueModels[$i]);
-//            }
-//        }
-
+        // @todo move to a guesser-pass with name "transaction"
         foreach ($this->manager->getPool()->getIterator() as $manager) {
             if (method_exists('rollback', $manager)) {
                 $manager->rollback();
             }
         }
-
-        $this->queueActions = array();
-        $this->queueModels  = array();
     }
 }
