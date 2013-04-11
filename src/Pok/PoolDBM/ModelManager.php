@@ -2,7 +2,6 @@
 
 namespace Pok\PoolDBM;
 
-use Doctrine\Common\EventManager;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\Common\Persistence\ObjectManager;
 
@@ -24,7 +23,7 @@ class ModelManager implements ObjectManager
     private $metadataFactory;
 
     /**
-     * @var MappingDriverChain 
+     * @var MappingDriverChain
      */
     private $metadataDriverImpl;
 
@@ -53,11 +52,6 @@ class ModelManager implements ObjectManager
      * @var bool
      */
     private $closed = false;
-
-    /**
-     * @var EventManager
-     */
-    private $eventManager;
 
     /**
      * Constructor.
@@ -197,8 +191,8 @@ class ModelManager implements ObjectManager
     }
 
     /**
-     * @param string $modelName  The name of the Model.
-     * @return DocumentRepository  The repository.
+     * @param  string             $modelName The name of the Model.
+     * @return DocumentRepository The repository.
      */
     public function getRepository($modelName)
     {

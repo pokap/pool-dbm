@@ -90,10 +90,10 @@ class ModelPersister
     /**
      * Loads a list of model by a list of field criteria.
      *
-     * @param array $criteria
-     * @param array $orderBy
-     * @param integer $limit (optional)
-     * @param integer $offset (optional)
+     * @param array   $criteria
+     * @param array   $orderBy
+     * @param integer $limit    (optional)
+     * @param integer $offset   (optional)
      *
      * @return array
      */
@@ -152,7 +152,7 @@ class ModelPersister
     }
 
     /**
-     * @param array $data
+     * @param  array  $data
      * @return object
      */
     private function createModel(array $data)

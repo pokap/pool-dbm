@@ -15,7 +15,7 @@ class ModelRepository
     protected $uow;
 
     /**
-     * @var Mapping\ClassMetadata 
+     * @var Mapping\ClassMetadata
      */
     protected $class;
 

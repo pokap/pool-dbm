@@ -12,7 +12,7 @@ class UnitOfWork
     private $manager;
 
     /**
-     * @var ModelPersister[] 
+     * @var ModelPersister[]
      */
     private $persisters;
 
@@ -58,16 +58,16 @@ class UnitOfWork
         $managers = $class->getFieldManagerNames();
         $pool     = $this->manager->getPool();
 
-        $managerName  = $class->getManagerReferenceGenerator();
-        $managerModel = $model->{'get' . ucfirst($managerName)}();
+        $managerName = $class->getManagerReferenceGenerator();
+        $referenceModel = $model->{'get' . ucfirst($managerName)}();
 
-        $pool->getManager($managerName)->persist($managerModel);
+        $pool->getManager($managerName)->persist($referenceModel);
 
         unset($managers[$managerName]);
 
         foreach ($managers as $managerName) {
             $managerModel = $model->{'get' . ucfirst($managerName)}();
-            $managerModel->setId($managerModel->getId());
+            $managerModel->setId($referenceModel->getId());
 
             $pool->getManager($managerName)->persist($managerModel);
         }
@@ -177,7 +177,7 @@ class UnitOfWork
 
     /**
      * @param string $className
-     * @param array $data
+     * @param array  $data
      *
      * @return object The model instance.
      */

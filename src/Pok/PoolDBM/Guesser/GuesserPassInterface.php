@@ -11,11 +11,28 @@ namespace Pok\PoolDBM\Guesser;
 interface GuesserPassInterface
 {
     /**
-     * Returns small list of managers by priority.
+     * Returns small list of manager name by priority.
      *
      * @param \ArrayIterator $managers
      *
-     * @return \ArrayIterator
+     * @return array
      */
-    function process(\ArrayIterator $managers);
+    public function process(\ArrayIterator $managers);
+
+    /**
+     * Returns if manager can add to priority list managers.
+     *
+     * @param string $name
+     * @param object $manager
+     *
+     * @return boolean
+     */
+    public function guess($name, $manager);
+
+    /**
+     * Returns name of guesser pass.
+     *
+     * @return string
+     */
+    public function getName();
 }

@@ -3,6 +3,7 @@
 namespace Pok\PoolDBM\Manager;
 
 use Doctrine\Common\Persistence\ObjectManager;
+use Pok\PoolDBM\Guesser\GuesserPassInterface;
 
 interface PoolInterface extends \IteratorAggregate
 {
@@ -12,19 +13,40 @@ interface PoolInterface extends \IteratorAggregate
      *
      * @return PoolInterface
      */
-    function addManager($name, ObjectManager $provider);
+    public function addManager($name, ObjectManager $provider);
 
     /**
      * @param string $name
      *
      * @return boolean
      */
-    function hasManager($name);
+    public function hasManager($name);
 
     /**
      * @param string $name
      *
      * @return ObjectManager
      */
-    function getManager($name);
+    public function getManager($name);
+
+    /**
+     * Process guesser pass with pool managers.
+     *
+     * @param GuesserPassInterface $guesser
+     */
+    public function registerGuesserPass(GuesserPassInterface $guesser);
+
+    /**
+     * @param $name
+     *
+     * @return boolean
+     */
+    public function hasPriority($name);
+
+    /**
+     * @param string $name
+     *
+     * @return array
+     */
+    public function getPriority($name);
 }
