@@ -119,6 +119,7 @@ class Transaction
         });
 
         $this->executeQueue();
+        $this->manager->flush();
     }
 
     /**
