@@ -185,7 +185,7 @@ class Transaction
         $this->queueActions[]      = $action;
         $this->queueManagerNames[] = $managerName;
         $this->queueModels[]       = $model;
-        $this->queueId[]           = $id;
+        $this->queueIds[]           = $id;
     }
 
     /**
