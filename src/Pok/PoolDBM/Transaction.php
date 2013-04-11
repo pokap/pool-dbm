@@ -31,10 +31,7 @@ class Transaction
     {
         $this->manager = $manager;
 
-        $this->queueActions      = array();
-        $this->queueManagerNames = array();
-        $this->queueModels       = array();
-        $this->queueIds          = array();
+        $this->cleanQueue();
     }
 
     /**
@@ -131,6 +128,8 @@ class Transaction
      */
     public function rollback()
     {
+        $this->cleanQueue();
+
         $this->launch(function ($manager) {
             $manager->rollback();
         });
@@ -201,10 +200,17 @@ class Transaction
             }
         }
 
-        // clean
-        $this->queueActions[]      = array();
-        $this->queueManagerNames[] = array();
-        $this->queueModels[]       = array();
-        $this->queueIds[]          = array();
+        $this->cleanQueue();
+    }
+
+    /**
+     * Clean all queues.
+     */
+    protected function cleanQueue()
+    {
+        $this->queueActions      = array();
+        $this->queueManagerNames = array();
+        $this->queueModels       = array();
+        $this->queueIds          = array();
     }
 }
