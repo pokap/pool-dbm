@@ -159,7 +159,7 @@ class Transaction
      *
      * @param \Closure $func
      */
-    protected function launch($func)
+    protected function launch(\Closure $func)
     {
         foreach ($this->manager->getPool()->getPriority('transaction') as $managerName) {
             $func($this->manager->getPool()->getManager($managerName));

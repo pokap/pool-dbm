@@ -5,6 +5,9 @@ namespace Pok\PoolDBM\Mapping;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata as ClassMetadataInterface;
 use Doctrine\Common\Persistence\Mapping\ReflectionClass;
 
+use Pok\PoolDBM\Mapping\Definition\AssociationDefinition;
+use Pok\PoolDBM\Mapping\Definition\ModelDefinition;
+
 /**
  * Class ClassMetadataInfo
  *
@@ -35,7 +38,12 @@ class ClassMetadataInfo implements ClassMetadataInterface
     /**
      * @var ModelDefinition[]
      */
-    protected $fieldMappings = array();
+    protected $fieldMappings;
+
+    /**
+     * @var AssociationDefinition[]
+     */
+    protected $associationMappings;
 
     /**
      * The ReflectionClass instance of the mapped class.
@@ -52,6 +60,9 @@ class ClassMetadataInfo implements ClassMetadataInterface
     public function __construct($modelName)
     {
         $this->name = $modelName;
+
+        $this->fieldMappings       = array();
+        $this->associationMappings = array();
     }
 
     /**
@@ -181,6 +192,28 @@ class ClassMetadataInfo implements ClassMetadataInterface
     }
 
     /**
+     * Adding associtation mapping between multi-model.
+     *
+     * @param boolean $isCollection
+     * @param string  $field
+     * @param string  $targetMultiModel
+     * @param string  $referenceField   (optional)
+     * @param array   $cascade          (optional)
+     *
+     * @return AssociationDefinition
+     */
+    public function addAssociation($isCollection, $field, $targetMultiModel, $referenceField = null, array $cascade = array())
+    {
+        $mapping = new AssociationDefinition($field, $targetMultiModel, $isCollection);
+        $mapping->setCascade($cascade);
+        $mapping->setReferenceField($referenceField);
+
+        $this->associationMappings[$field] = $mapping;
+
+        return $mapping;
+    }
+
+    /**
      * @param object $model
      *
      * @return mixed
@@ -244,6 +277,24 @@ class ClassMetadataInfo implements ClassMetadataInterface
     }
 
     /**
+     * @param string $fieldName
+     *
+     * @return ModelDefinition
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function getModelDefinitionByFIeldName($fieldName)
+    {
+        foreach ($this->fieldMappings as $mapping) {
+            if (in_array($fieldName, $mapping->getFields())) {
+                return $mapping;
+            }
+        }
+
+        throw new \InvalidArgumentException(sprintf('%s does not exists in %s', $fieldName, $this->name));
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getReflectionClass()
@@ -260,7 +311,7 @@ class ClassMetadataInfo implements ClassMetadataInterface
      */
     public function hasAssociation($fieldName)
     {
-        throw new \RuntimeException('Association mapped has not implemented.');
+        return isset($this->associationMappings[$fieldName]);
     }
 
     /**
@@ -268,7 +319,7 @@ class ClassMetadataInfo implements ClassMetadataInterface
      */
     public function isSingleValuedAssociation($fieldName)
     {
-        throw new \RuntimeException('Association mapped has not implemented.');
+        return $this->associationMappings[$fieldName]->isOne();
     }
 
     /**
@@ -276,7 +327,7 @@ class ClassMetadataInfo implements ClassMetadataInterface
      */
     public function isCollectionValuedAssociation($fieldName)
     {
-        throw new \RuntimeException('Association mapped has not implemented.');
+        return $this->associationMappings[$fieldName]->isMany();
     }
 
     /**
@@ -284,7 +335,37 @@ class ClassMetadataInfo implements ClassMetadataInterface
      */
     public function getAssociationNames()
     {
-        throw new \RuntimeException('Association mapped has not implemented.');
+        return array_keys($this->associationMappings);
+    }
+
+    /**
+     * Returns list of association field per reference model.
+     *
+     * @eturn array
+     */
+    public function getAssociationReferenceNames()
+    {
+        $referenceNames = array();
+        foreach ($this->associationMappings as $assoc) {
+            $referenceNames[] = $assoc->getReferenceField() ?: $assoc->getField();
+        }
+
+        return $referenceNames;
+    }
+
+    /**
+     * Returns list of association mappings.
+     *
+     * @return AssociationDefinition[]
+     */
+    public function getAssociationDefinitions()
+    {
+        return $this->associationMappings;
+    }
+
+    public function getAssociationDefinition($field)
+    {
+        return $this->associationMappings[$field];
     }
 
     /**
@@ -292,7 +373,7 @@ class ClassMetadataInfo implements ClassMetadataInterface
      */
     public function getTypeOfField($fieldName)
     {
-        throw new \RuntimeException('Association mapped has not implemented.');
+        throw new \LogicException(sprintf('Field has no type, look mapping definition of "%s".', $this->getModelDefinitionByFIeldName($fieldName)->getName()));
     }
 
     /**
@@ -300,7 +381,7 @@ class ClassMetadataInfo implements ClassMetadataInterface
      */
     public function getAssociationTargetClass($assocName)
     {
-        throw new \RuntimeException('Association mapped has not implemented.');
+        return $this->associationMappings[$assocName]->getTargetMultiModel();
     }
 
     /**
@@ -308,7 +389,7 @@ class ClassMetadataInfo implements ClassMetadataInterface
      */
     public function isAssociationInverseSide($assocName)
     {
-        throw new \RuntimeException('Association mapped has not implemented.');
+        throw new \BadMethodCallException(__METHOD__.'() is not implemented yet.');
     }
 
     /**
@@ -316,6 +397,6 @@ class ClassMetadataInfo implements ClassMetadataInterface
      */
     public function getAssociationMappedByTargetField($assocName)
     {
-        throw new \RuntimeException('Association mapped has not implemented.');
+        throw new \BadMethodCallException(__METHOD__.'() is not implemented yet.');
     }
 }

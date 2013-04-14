@@ -2,9 +2,11 @@
 
 namespace Pok\PoolDBM\Persisters;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Pok\PoolDBM\ModelManager;
-use Pok\PoolDBM\UnitOfWork;
 use Pok\PoolDBM\Mapping\ClassMetadata;
+use Pok\PoolDBM\PersistentCollection;
+use Pok\PoolDBM\UnitOfWork;
 
 class ModelPersister
 {
@@ -35,8 +37,8 @@ class ModelPersister
     public function __construct(ModelManager $manager, UnitOfWork $uow, ClassMetadata $class)
     {
         $this->manager = $manager;
-        $this->uow = $uow;
-        $this->class = $class;
+        $this->uow     = $uow;
+        $this->class   = $class;
     }
 
     /**
@@ -72,19 +74,53 @@ class ModelPersister
 
         $result = array();
         $result[$manager_id] = $pool->getManager($manager_id)->getRepository($models[$manager_id])->findOneBy($criteria);
-        unset($models[$manager_id]);
 
         if (!$result[$manager_id]) {
             return null;
         }
 
-        $id = $this->class->getIdentifierValue($result[$manager_id]);
+        $referenceId = $this->class->getIdentifierValue($result[$manager_id]);
+        $collections = $this->getManagersPerCollection($result[$manager_id]);
 
-        foreach ($models as $manager => $model) {
-            $result[$manager] = $pool->getManager($manager)->getRepository($model)->find($id);
+        if (empty($collections)) {
+            foreach ($this->buildAndSortIdPerManager($referenceId, $models) as $manager => $id) {
+                $result[$manager] = $pool->getManager($manager)->getRepository($models[$manager])->find($id);
+            }
+        } else {
+            foreach ($this->buildAndSortIdPerManager($referenceId, $models, $collections) as $manager => $ids) {
+                $data = $this->relayLoadModels($manager, $models[$manager], $ids);
+
+                $result[$manager] = $data[$referenceId];
+
+                foreach ($collections as $field => $coll) {
+                    if ($this->class->isSingleValuedAssociation($field)) {
+                        $subresult = array();
+                        foreach ($coll as $id => $managers) {
+                            foreach ($managers as $manager) {
+                                $subresult[$manager] = $data[$id];
+                            }
+                        }
+
+                        $result[$field] = $this->createModel($this->manager->getClassMetadata($this->class->getAssociationTargetClass($field))->getName(), $subresult);
+                    }
+                    else {
+                        $result[$field] = new ArrayCollection();
+
+                        foreach ($coll as $id => $managers) {
+                            $subresult = array();
+
+                            foreach ($managers as $manager) {
+                                $subresult[$manager] = $data[$id];
+                            }
+
+                            $result[$field]->add($this->createModel($this->manager->getClassMetadata($this->class->getAssociationTargetClass($field))->getName(), $subresult));
+                        }
+                    }
+                }
+            }
         }
 
-        return $this->createModel($result);
+        return $this->createModel($this->class->getName(), $result);
     }
 
     /**
@@ -111,7 +147,7 @@ class ModelPersister
         foreach ($pool->getManager($manager_id)->getRepository($models[$manager_id])->findBy($criteria, $orderBy, $limit, $offset) as $object) {
             $id = $this->class->getIdentifierValue($object);
 
-            $data[$id][$manager_id] = $object;
+            $data[$id] = $object;
         }
 
         $ids = array_keys($data);
@@ -119,48 +155,185 @@ class ModelPersister
             return null;
         }
 
-        unset($models[$manager_id]);
+        $all = array();
 
-        foreach ($models as $manager => $model) {
-            $methodFind = $this->class->getFieldMapping($manager)->getRepositoryMethod();
+        foreach ($data as $referenceId => $object) {
+            $result = array();
+            $result[$manager_id] = $object;
 
-            if ($methodFind) {
-                foreach ($pool->getManager($manager)->getRepository($model)->$methodFind($ids) as $object) {
-                    $id = $this->class->getIdentifierValue($object);
+            $collections = $this->getManagersPerCollection($result[$manager_id]);
 
-                    $data[$id][$manager] = $object;
+            if (empty($collections)) {
+                foreach ($this->buildAndSortIdPerManager($referenceId, $models) as $manager => $id) {
+                    $result[$manager] = $pool->getManager($manager)->getRepository($models[$manager])->find($id);
                 }
             } else {
-                trigger_error(sprintf('findOneBy in ModelPersister::loadAll context is depreciate. Define repository-method for "%s" manager model, see mapping for "%s".', $manager, $this->class->getName()), E_USER_DEPRECATED);
+                foreach ($this->buildAndSortIdPerManager($referenceId, $models, $collections) as $manager => $ids) {
+                    $data = $this->relayLoadModels($manager, $models[$manager], $ids);
 
-                foreach ($ids as $id) {
-                    $object = $pool->getManager($manager)->getRepository($model)->findOneBy(array($this->class->getFieldIdentifier() => $id));
+                    $result[$manager] = $data[$referenceId];
 
-                    $id = $this->class->getIdentifierValue($object);
+                    foreach ($collections as $field => $coll) {
+                        if ($this->class->isSingleValuedAssociation($field)) {
+                            $subresult = array();
+                            foreach ($coll as $id => $managers) {
+                                foreach ($managers as $manager) {
+                                    $subresult[$manager] = $data[$id];
+                                }
+                            }
 
-                    $data[$id][$manager] = $object;
+                            $result[$field] = $this->createModel($this->manager->getClassMetadata($this->class->getAssociationTargetClass($field))->getName(), $subresult);
+                        }
+                        else {
+                            $result[$field] = new ArrayCollection();
+
+                            foreach ($coll as $id => $managers) {
+                                $subresult = array();
+
+                                foreach ($managers as $manager) {
+                                    $subresult[$manager] = $data[$id];
+                                }
+
+                                $result[$field]->add($this->createModel($this->manager->getClassMetadata($this->class->getAssociationTargetClass($field))->getName(), $subresult));
+                            }
+                        }
+                    }
                 }
+            }
+
+            $all[] = $this->createModel($this->class->getName(), $result);
+        }
+
+        return $all;
+    }
+
+    /**
+     * Returns list of collection.
+     *
+     * @param object $referenceModel
+     *
+     * @return array
+     */
+    protected function getManagersPerCollection($referenceModel)
+    {
+        $collections = array();
+        foreach ($this->class->getAssociationReferenceNames() as $field) {
+            /** @var ArrayCollection $coll */
+            $coll = $referenceModel->{'get'.ucfirst($field)}();
+
+            if ($coll->isEmpty()) {
+                continue;
+            }
+
+            foreach ($coll as $cc) {
+                $class = $this->manager->getClassMetadata(get_class($cc));
+                $id    = $class->getIdentifierValue($cc);
+
+                $collections[$field][$id] = $class->getFieldManagerNames();
             }
         }
 
+        return $collections;
+    }
+
+    /**
+     * @param $id
+     * @param array $models
+     * @param array $collections
+     * @return array
+     */
+    protected function buildAndSortIdPerManager($id, array $models, array $collections = array())
+    {
         $result = array();
-        foreach ($ids as $id) {
-            $result[] = $this->createModel($data[$id]);
+
+        if (is_array($id)) {
+            foreach ($models as $manager => $model) {
+                $result[$manager] = $id;
+            }
+        } else {
+            foreach ($models as $manager => $model) {
+                $result[$manager][] = $id;
+            }
+        }
+
+        foreach ($collections as $coll) {
+            foreach ($coll as $id => $managers) {
+                foreach ($managers as $manager) {
+                    $result[$manager][] = $id;
+                }
+            }
         }
 
         return $result;
     }
 
     /**
-     * @param  array  $data
+     * @param string $manager
+     * @param string $model
+     * @param array  $ids
+     * @param array  $data
+     *
+     * @return array
+     */
+    protected function relayLoadModels($manager, $model, array $ids, array $data = array())
+    {
+        $pool       = $this->manager->getPool();
+        $methodFind = $this->class->getFieldMapping($manager)->getRepositoryMethod();
+
+        if ($methodFind) {
+            foreach ($pool->getManager($manager)->getRepository($model)->$methodFind($ids) as $object) {
+                $id = $this->manager->getClassMetadata($object)->getIdentifierValue($object);
+
+                $data[$id][$manager] = $object;
+            }
+        } else {
+            trigger_error(sprintf('findOneBy in ModelPersister::loadAll context is depreciate. Define repository-method for "%s" manager model, see mapping for "%s".', $manager, $this->class->getName()), E_USER_DEPRECATED);
+
+            foreach ($ids as $id) {
+                $object = $pool->getManager($manager)->getRepository($model)->findOneBy(array($this->class->getFieldIdentifier() => $id));
+
+                $id = $this->manager->getClassMetadata($object)->getIdentifierValue($object);
+
+                $data[$id][$manager] = $object;
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param array $models
+     * @param array $ids
+     * @param array $data   (optional)
+     *
+     * @return array
+     */
+    protected function generateModelsByIds(array $models, array $ids, array $data = array())
+    {
+        foreach ($models as $manager => $model) {
+            $data = array_merge($data, $this->relayLoadModels($manager, $model, $ids));
+        }
+
+        $result = array();
+        foreach ($ids as $id) {
+            $result[] = $this->createModel($this->class->getName(), $data[$id]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param string $className
+     * @param array  $data
+     *
      * @return object
      */
-    private function createModel(array $data)
+    protected function createModel($className, array $data)
     {
         if (empty($data)) {
             return null;
         }
 
-        return $this->uow->createModel($this->class->getName(), $data);
+        return $this->uow->createModel($className, $data);
     }
 }
