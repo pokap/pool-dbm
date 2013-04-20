@@ -2,7 +2,7 @@
 
 namespace MultiModel;
 
-class Test
+class User
 {
     private $entity;
 

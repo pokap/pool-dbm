@@ -25,14 +25,17 @@ class UnitOfWorkTest extends \PHPUnit_Framework_TestCase
     }
 }
 
-class FakeModelTest2 {
+class FakeModelTest2
+{
     private $fake;
 
-    public function setFake($fake) {
+    public function setFake($fake)
+    {
         $this->fake = $fake;
     }
 
-    public function getFake() {
+    public function getFake()
+    {
         return $this->fake;
     }
 }

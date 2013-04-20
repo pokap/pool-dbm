@@ -2,10 +2,8 @@
 
 namespace Pok\PoolDBM\Persisters;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Pok\PoolDBM\ModelManager;
 use Pok\PoolDBM\Mapping\ClassMetadata;
-use Pok\PoolDBM\PersistentCollection;
 use Pok\PoolDBM\UnitOfWork;
 
 class ModelPersister
@@ -73,13 +71,7 @@ class ModelPersister
 
         $builder = new ModelBuilder($this->manager, $this->uow, $this->getClassMetadata()->getAssociationDefinitions());
 
-        return $builder->build(
-            $this->class->getIdentifierValue($model),
-            $this->class->getFieldManagerNames(),
-            $model,
-            $this->class->getName(),
-            $manager_id
-        );
+        return $builder->build($this->class, $model, $manager_id);
     }
 
     /**
@@ -111,6 +103,6 @@ class ModelPersister
 
         $builder = new ModelBuilder($this->manager, $this->uow, $this->getClassMetadata()->getAssociationDefinitions());
 
-        return $builder->buildAll($this->class->getFieldManagerNames(), $data, $this->class->getName(), $manager_id);
+        return $builder->buildAll($this->class, $data, $manager_id);
     }
 }

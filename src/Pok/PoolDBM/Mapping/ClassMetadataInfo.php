@@ -41,9 +41,19 @@ class ClassMetadataInfo implements ClassMetadataInterface
     protected $fieldMappings;
 
     /**
+     * @var array
+     */
+    protected $identifierReferences;
+
+    /**
      * @var AssociationDefinition[]
      */
     protected $associationMappings;
+
+    /**
+     * @var string
+     */
+    protected $referenceGeneratorManager;
 
     /**
      * The ReflectionClass instance of the mapped class.
@@ -111,6 +121,32 @@ class ClassMetadataInfo implements ClassMetadataInterface
     public function getIdentifier()
     {
         return $this->identifierField;
+    }
+
+    /**
+     * @param string $manager
+     * @param string $field
+     */
+    public function addRefenceIdentifier($manager, $field)
+    {
+        $this->identifierReferences[$manager] = $field;
+    }
+
+    /**
+     * Returns field idendifier given by manager.
+     * If manager not specific, returns identifier field of model reference.
+     *
+     * @param string $manager
+     *
+     * @return string
+     */
+    public function getReferenceIdentifier($manager)
+    {
+        if (!isset($this->identifierReferences[$manager])) {
+            return $this->identifierField;
+        }
+
+        return $this->identifierReferences[$manager];
     }
 
     /**
@@ -192,6 +228,26 @@ class ClassMetadataInfo implements ClassMetadataInterface
     }
 
     /**
+     * Sets reference generator manager.
+     *
+     * @param string $targetManager
+     */
+    public function setManagerReferenceGenerator($targetManager)
+    {
+        $this->referenceGeneratorManager = $targetManager;
+    }
+
+    /**
+     * Returns reference generator manager.
+     *
+     * @return string
+     */
+    public function getManagerReferenceGenerator()
+    {
+        return $this->referenceGeneratorManager? : $this->identifierManager;
+    }
+
+    /**
      * Adding associtation mapping between multi-model.
      *
      * @param boolean $isCollection
@@ -225,12 +281,15 @@ class ClassMetadataInfo implements ClassMetadataInterface
 
     /**
      * @param object $model
+     * @param string $manager (optional)
      *
      * @return mixed
      */
-    public function getIdentifierValue($model)
+    public function getIdentifierValue($model, $manager = null)
     {
-        return $model->{'get' . ucfirst($this->identifierField)}();
+        $field = (null !== $manager)? $this->getReferenceIdentifier($manager) : $this->identifierField;
+
+        return $model->{'get' . ucfirst($field)}();
     }
 
     /**
@@ -283,7 +342,7 @@ class ClassMetadataInfo implements ClassMetadataInterface
      *
      * @throws \InvalidArgumentException
      */
-    public function getModelDefinitionByFIeldName($fieldName)
+    public function getModelDefinitionByFieldName($fieldName)
     {
         foreach ($this->fieldMappings as $mapping) {
             if (in_array($fieldName, $mapping->getFields())) {
@@ -363,6 +422,11 @@ class ClassMetadataInfo implements ClassMetadataInterface
         return $this->associationMappings;
     }
 
+    /**
+     * @param string $field
+     *
+     * @return AssociationDefinition
+     */
     public function getAssociationDefinition($field)
     {
         return $this->associationMappings[$field];
@@ -373,7 +437,7 @@ class ClassMetadataInfo implements ClassMetadataInterface
      */
     public function getTypeOfField($fieldName)
     {
-        throw new \LogicException(sprintf('Field has no type, look mapping definition of "%s".', $this->getModelDefinitionByFIeldName($fieldName)->getName()));
+        throw new \LogicException(sprintf('Field has no type, look mapping definition of "%s".', $this->getModelDefinitionByFieldName($fieldName)->getName()));
     }
 
     /**

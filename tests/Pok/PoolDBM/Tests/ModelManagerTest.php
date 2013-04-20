@@ -71,7 +71,8 @@ class ModelManagerTest extends \PHPUnit_Framework_TestCase
 
 class ModelTest
 {
-    public function getEntity() {
+    public function getEntity()
+    {
         return '$ENTITYCLASS';
     }
 }
@@ -81,54 +82,64 @@ class EntityTest
     private $id;
 }
 
-class EntityManager extends ObjectManagerMock {
-    public function getRepository($entityClass) {
+class EntityManager extends ObjectManagerMock
+{
+    public function getRepository($entityClass)
+    {
         return new EntityRepository();
     }
 
-    public function persist($entity) {
+    public function persist($entity)
+    {
         if ('$ENTITYCLASS' != $entity) {
             throw new \RuntimeException();
         }
     }
 
-    public function remove($entity) {
+    public function remove($entity)
+    {
         if ('$ENTITYCLASS' != $entity) {
             throw new \RuntimeException();
         }
     }
 
-    public function refresh($entity) {
+    public function refresh($entity)
+    {
         if ('$ENTITYCLASS' != $entity) {
             throw new \RuntimeException();
         }
     }
 
-    public function detach($entity) {
+    public function detach($entity)
+    {
         if ('$ENTITYCLASS' != $entity) {
             throw new \RuntimeException();
         }
     }
 
-    public function merge($entity) {
+    public function merge($entity)
+    {
         if ('$ENTITYCLASS' != $entity) {
             throw new \RuntimeException();
         }
     }
 
-    public function flush($entity = null) {
+    public function flush($entity = null)
+    {
         if ('$ENTITYCLASS' != $entity) {
             throw new \RuntimeException();
         }
     }
 
-    public function clear($entity = null) {
+    public function clear($entity = null)
+    {
         if (null != $entity) {
             throw new \RuntimeException();
         }
     }
 
-    public function contains($object) {
+    public function contains($object)
+    {
         return true;
     }
 }

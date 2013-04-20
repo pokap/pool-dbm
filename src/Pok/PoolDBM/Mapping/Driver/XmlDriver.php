@@ -46,6 +46,36 @@ class XmlDriver extends FileDriver
 
         // mandatory, after register models
         $this->setModelReference($class, $xmlRoot->{'model-reference'});
+
+        // associations
+        foreach ($xmlRoot->{'relation-one'} as $reference) {
+            $this->addAssociation($class, $reference, false);
+        }
+        foreach ($xmlRoot->{'relation-many'} as $reference) {
+            $this->addAssociation($class, $reference, true);
+        }
+    }
+
+    /**
+     * @param ClassMetadataInfo $class
+     * @param \SimpleXMLElement $reference
+     * @param boolean           $isCollection
+     */
+    protected function addAssocition(ClassMetadataInfo $class, \SimpleXMLElement $reference, $isCollection)
+    {
+        $cascade = array();
+
+        foreach ($reference as $config) {
+            /** @var \SimpleXMLElement $config */
+            if ('cascade' === $config->getName()) {
+                foreach ($config as $rcascade) {
+                    /** @var \SimpleXMLElement $rcascade */
+                    $cascade[] = $rcascade->getName();
+                }
+            }
+        }
+
+        $class->addAssociation($isCollection, (string) $reference['field'], (string) $reference['target-model'], (isset($reference['reference-field'])? (string) $reference['reference-field'] : null), $cascade);
     }
 
     /**
@@ -57,6 +87,18 @@ class XmlDriver extends FileDriver
         $parameters = $reference->attributes();
 
         $class->setIdentifier((string) $parameters['manager'], (string) $parameters['field']);
+
+        foreach ($reference as $config) {
+            /** @var \SimpleXMLElement $config */
+            switch ($config->getName()) {
+                case 'reference':
+                    $class->addRefenceIdentifier((string) $config['manager'], (string) $config['field']);
+                    break;
+                case 'id-generator':
+                    $class->setManagerReferenceGenerator((string) $config['target-manager']);
+                    break;
+            }
+        }
     }
 
     /**

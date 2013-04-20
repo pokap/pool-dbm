@@ -158,7 +158,7 @@ class ModelRepository
     }
 
     /**
-     * @param array $data
+     * @param  array  $data
      * @return object
      */
     private function createModel(array $data)

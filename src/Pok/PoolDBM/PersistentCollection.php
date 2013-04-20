@@ -105,7 +105,7 @@ class PersistentCollection implements Collection
     /**
      * {@inheritdoc}
      */
-    function clear()
+    public function clear()
     {
         if ($this->initialized && $this->isEmpty()) {
             return;
@@ -117,7 +117,7 @@ class PersistentCollection implements Collection
     /**
      * {@inheritdoc}
      */
-    function contains($element)
+    public function contains($element)
     {
         $this->initialize();
 
@@ -214,6 +214,7 @@ class PersistentCollection implements Collection
     public function toArray()
     {
         $this->initialize();
+
         return $this->coll->toArray();
     }
 
@@ -230,7 +231,7 @@ class PersistentCollection implements Collection
     /**
      * {@inheritdoc}
      */
-    function last()
+    public function last()
     {
         $this->initialize();
 
@@ -367,6 +368,7 @@ class PersistentCollection implements Collection
         }
 
         $this->set($offset, $value);
+
         return true;
     }
 

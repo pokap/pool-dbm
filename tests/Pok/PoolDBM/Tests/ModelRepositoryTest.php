@@ -32,6 +32,7 @@ class ModelRepositoryTest extends \PHPUnit_Framework_TestCase
     }
 }
 
-class FakeModelTest {
+class FakeModelTest
+{
     private $fake;
 }

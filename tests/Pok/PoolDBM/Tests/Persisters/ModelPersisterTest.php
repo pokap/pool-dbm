@@ -40,7 +40,7 @@ class ModelPersisterTest extends \PHPUnit_Framework_TestCase
         $models = $persisters->loadAll();
         foreach ($models as $model) {
             $this->assertInstanceOf(__NAMESPACE__ . '\\ModelTest', $model);
-            
+
             $this->assertInstanceOf(__NAMESPACE__ . '\\EntityTest', $model->entity);
             $this->assertInstanceOf(__NAMESPACE__ . '\\DocumentTest', $model->document);
             $this->assertEquals($model->entity->id, $model->document->id);
@@ -50,60 +50,77 @@ class ModelPersisterTest extends \PHPUnit_Framework_TestCase
     }
 }
 
-class ModelTest {
+class ModelTest
+{
     public $entity;
     public $document;
-    public function setEntity($entity) {
+    public function setEntity($entity)
+    {
         $this->entity = $entity;
     }
-    public function getEntity() {
+    public function getEntity()
+    {
         return $this->entity;
     }
-    public function setDocument($document) {
+    public function setDocument($document)
+    {
         $this->document = $document;
     }
-    public function getDocument() {
+    public function getDocument()
+    {
         return $this->document;
     }
-    public function getId() {
+    public function getId()
+    {
         return $this->entity->id;
     }
-    public function setId($id) {
+    public function setId($id)
+    {
         $this->entity->id = $id;
         $this->document->id = $id;
     }
 }
 
-class EntityTest {
+class EntityTest
+{
     public $id;
-    public function getId() {
+    public function getId()
+    {
         return $this->id;
     }
 }
 
-class DocumentTest {
+class DocumentTest
+{
     public $id;
-    public function getId() {
+    public function getId()
+    {
         return $this->id;
     }
 }
 
-class EntityManager extends ObjectManagerMock {
-    public function getRepository($entityClass) {
+class EntityManager extends ObjectManagerMock
+{
+    public function getRepository($entityClass)
+    {
         return new EntityRepository();
     }
 }
 
-class DocumentManager extends ObjectManagerMock {
-    public function getRepository($documentClass) {
+class DocumentManager extends ObjectManagerMock
+{
+    public function getRepository($documentClass)
+    {
         return new DocumentRepository();
     }
 }
 
-class EntityRepository {
+class EntityRepository
+{
     public static $count = 0;
 
-    public function findOneBy($criteria) {
+    public function findOneBy($criteria)
+    {
         self::$count++;
 
         $entity = new EntityTest;
@@ -112,7 +129,8 @@ class EntityRepository {
         return $entity;
     }
 
-    public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null) {
+    public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+    {
         self::$count++;
 
         $list = array();
@@ -127,10 +145,12 @@ class EntityRepository {
     }
 }
 
-class DocumentRepository {
+class DocumentRepository
+{
     public static $count = 0;
 
-    public function find($id) {
+    public function find($id)
+    {
         self::$count++;
 
         $document = new DocumentTest;
@@ -139,7 +159,8 @@ class DocumentRepository {
         return $document;
     }
 
-    public function findByIds(array $ids) {
+    public function findByIds(array $ids)
+    {
         self::$count++;
 
         $list = array();
