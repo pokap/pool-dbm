@@ -62,6 +62,11 @@ class ModelTest
         $this->entity = new EntityTest();
     }
 
+    public function getId()
+    {
+        return $this->entity->getId();
+    }
+
     public function getEntity()
     {
         return $this->entity;
@@ -75,9 +80,13 @@ class ModelTest
 
 class EntityTest
 {
+    public function setId($id)
+    {
+    }
+
     public function getId()
     {
-        return null;
+        return 1;
     }
 }
 
@@ -90,14 +99,14 @@ class EntityManager extends ObjectManagerMock
 
     public function persist($entity)
     {
-        if ('$ENTITYCLASS' != $entity) {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }
 
     public function remove($entity)
     {
-        if ('$ENTITYCLASS' != $entity) {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }

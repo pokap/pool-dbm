@@ -38,6 +38,10 @@ class UnitOfWork
                 $manager->flush();
             }
         } else {
+            if (!is_array($models)) {
+                $models = array($models);
+            }
+
             foreach ((array) $models as $model) {
                 $class = $this->manager->getClassMetadata(get_class($model));
                 $pool  = $this->manager->getPool();
@@ -67,6 +71,10 @@ class UnitOfWork
 
         foreach ($managers as $managerName) {
             $managerModel = $model->{'get' . ucfirst($managerName)}();
+            if (!is_object($managerModel)) {
+                throw new \RuntimeException(sprintf('Getter manager "%s" must be returns object, "%s" given by model "%s".', $managerName, get_class($model), gettype($managerModel)));
+            }
+
             $managerModel->setId($referenceModel->getId());
 
             $pool->getManager($managerName)->persist($managerModel);
@@ -151,7 +159,7 @@ class UnitOfWork
      *
      * @param string $modelName
      *
-     * @return DocumentPersister
+     * @return ModelPersister
      */
     public function getModelPersister($modelName)
     {

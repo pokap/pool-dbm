@@ -51,7 +51,9 @@ class ModelBuilder
     public function build(ClassMetadata $class, $referenceModel, $originManager)
     {
         $result = $this->getResult($class->getName(), array($class->getIdentifierValue($referenceModel)), $class->getFieldManagerNames(), $originManager);
-        $result = current($result[$class->getName()]);
+        if (!empty($result)) {
+            $result = reset($result);
+        }
 
         $result[$originManager] = $referenceModel;
 
@@ -74,11 +76,14 @@ class ModelBuilder
 
         $result = $this->getResult($class->getName(), $originIds, $class->getFieldManagerNames(), $originManager);
 
-        $models = array();
-        foreach ($result as $id => $data) {
-            $data[$originManager] = $referenceModels[$id];
+        // pre-init data
+        foreach ($originIds as $id) {
+            $result[$id][$originManager] = $referenceModels[$id];
+        }
 
-            $models = $this->createModel($class->getName(), $data);
+        $models = array();
+        foreach ($result as $data) {
+            $models[] = $this->createModel($class->getName(), $data);
         }
 
         return $models;
@@ -192,12 +197,17 @@ class ModelBuilder
     {
         $result = array();
         $assocs = array();
-        foreach ($this->buildAndSortIdPerManager($originClassName, $ids, $originManagers) as $manager => $info) {
+
+        foreach ($this->buildAndSortIdPerManager($originClassName, $ids, array_diff($originManagers, array($ignoreOriginManager))) as $manager => $info) {
             foreach ($info as $className => $ids) {
                 if ($className !== $originClassName) {
-                    $assocs[$className] = array_merge($assocs[$className], $this->relayLoadModels($this->manager->getClassMetadata($className), $manager, $ids));
+                    foreach ($this->relayLoadModels($this->manager->getClassMetadata($className), $manager, $ids) as $id => $data) {
+                        $assocs[$className][$id] = $data;
+                    }
                 } elseif ($ignoreOriginManager !== $manager) {
-                    $result = array_merge($result, $this->relayLoadModels($this->manager->getClassMetadata($className), $manager, $ids));
+                    foreach ($this->relayLoadModels($this->manager->getClassMetadata($className), $manager, $ids) as $id => $data) {
+                        $result[$id] = $data;
+                    }
                 }
             }
         }

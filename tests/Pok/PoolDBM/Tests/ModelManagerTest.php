@@ -71,15 +71,32 @@ class ModelManagerTest extends \PHPUnit_Framework_TestCase
 
 class ModelTest
 {
+    protected $entity;
+
+    public function __construct()
+    {
+        $this->entity = new EntityTest();
+    }
+
     public function getEntity()
     {
-        return '$ENTITYCLASS';
+        return $this->entity;
     }
 }
 
 class EntityTest
 {
-    private $id;
+    private $id = 1;
+
+    public function setId($id)
+    {
+        $this->id = $id;
+    }
+
+    public function getId()
+    {
+        return $this->id;
+    }
 }
 
 class EntityManager extends ObjectManagerMock
@@ -91,42 +108,42 @@ class EntityManager extends ObjectManagerMock
 
     public function persist($entity)
     {
-        if ('$ENTITYCLASS' != $entity) {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }
 
     public function remove($entity)
     {
-        if ('$ENTITYCLASS' != $entity) {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }
 
     public function refresh($entity)
     {
-        if ('$ENTITYCLASS' != $entity) {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }
 
     public function detach($entity)
     {
-        if ('$ENTITYCLASS' != $entity) {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }
 
     public function merge($entity)
     {
-        if ('$ENTITYCLASS' != $entity) {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }
 
     public function flush($entity = null)
     {
-        if ('$ENTITYCLASS' != $entity) {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }
