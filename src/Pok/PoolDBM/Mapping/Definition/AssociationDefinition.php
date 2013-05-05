@@ -58,11 +58,19 @@ class AssociationDefinition
     }
 
     /**
-     * @return null|string
+     * @return boolean
+     */
+    public function hasReferenceField()
+    {
+        return null !== $this->referenceField;
+    }
+
+    /**
+     * @return string
      */
     public function getReferenceField()
     {
-        return $this->referenceField;
+        return $this->referenceField ?: $this->field;
     }
 
     /**

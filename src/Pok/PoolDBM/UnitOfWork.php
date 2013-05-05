@@ -188,14 +188,21 @@ class UnitOfWork
      * @param array  $data
      *
      * @return object The model instance.
+     *
+     * @throws \RuntimeException
      */
     public function createModel($className, $data)
     {
-        $class = $this->manager->getClassMetadata($className);
-        $model = $class->newInstance();
+        $model = new $className;
 
         foreach ($data as $managerName => $value) {
-            $model->{'set' . ucfirst($managerName)}($value);
+            $method_name = 'set' . ucfirst($managerName);
+
+            if (!method_exists($model, $method_name)) {
+                throw new \RuntimeException(sprintf('Method "%s" does not exist in "%s" class.', $method_name, $className));
+            }
+
+            $model->$method_name($value);
         }
 
         return $model;

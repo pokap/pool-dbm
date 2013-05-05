@@ -36,10 +36,10 @@ class ClassMetadataDebug extends ClassMetadata
     /**
      * {@inheritDoc}
      */
-    public function getIdentifierValue($model)
+    public function getIdentifierValue($model, $manager = null)
     {
         if (!is_object($model)) {
-            throw new \InvalidArgumentException(sprintf('You must flush a object model, you given type "%s".', gettype($model)));
+            throw new \InvalidArgumentException(sprintf('You must given an object model, you given type "%s".', gettype($model)));
         }
 
         if ($model instanceof $this->name) {
@@ -51,7 +51,7 @@ class ClassMetadataDebug extends ClassMetadata
             throw new \RuntimeException(sprintf('You model "%s" must be implement method "%s".', get_class($model), $method));
         }
 
-        return parent::getIdentifierValue($model);
+        return parent::getIdentifierValue($model, $manager);
     }
 
     /**

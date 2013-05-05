@@ -40,11 +40,11 @@ Mapping:
         <id-generator target-manager="document" />
     </model-reference>
 
-    <model manager="orm" name="Entity\User" repository-method="findByIds">
+    <model manager="entity" name="Entity\User" repository-method="findByIds">
         <field name="name" />
     </model>
 
-    <model manager="odm" name="Document\User">
+    <model manager="document" name="Document\User">
         <field name="profileContent" />
     </model>
 

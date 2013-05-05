@@ -75,7 +75,13 @@ class XmlDriver extends FileDriver
             }
         }
 
-        $class->addAssociation($isCollection, (string) $reference['field'], (string) $reference['target-model'], (isset($reference['reference-field'])? (string) $reference['reference-field'] : null), $cascade);
+        $class->addAssociation(
+            $isCollection,
+            (string) $reference['field'],
+            (string) $reference['target-model'],
+            (isset($reference['reference-field'])? (string) $reference['reference-field'] : null),
+            $cascade
+        );
     }
 
     /**

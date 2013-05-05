@@ -2,7 +2,7 @@
 
 namespace Pok\PoolDBM\Persisters;
 
-class CollectionCenterIterator implements \Iterator
+class CollectionCenterIterator implements \Iterator, \Countable
 {
     /**
      * @var CollectionCenter[]
@@ -10,11 +10,21 @@ class CollectionCenterIterator implements \Iterator
     private $collections;
 
     /**
+     * @var array
+     */
+    private $cursorClassName;
+
+    /**
+     * @var integer
+     */
+    private $position;
+
+    /**
      * Constructor.
      */
     public function __construct()
     {
-        $this->collections = array();
+        $this->clean();
     }
 
     /**
@@ -22,17 +32,44 @@ class CollectionCenterIterator implements \Iterator
      */
     public function append(CollectionCenter $collection)
     {
-        $this->collections[$collection->getClassName()] = $collection;
+        $this->cursorClassName[] = $collection->getClassName();
+        $this->collections[]     = $collection;
+    }
+
+    /**
+     * @param string $className
+     * @param string $field
+     *
+     * @return CollectionCenter
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function get($className, $field)
+    {
+        foreach ($this->cursorClassName as $key => $cursor) {
+            if ($cursor === $className && $field === $this->collections[$key]->getField()) {
+                return $this->collections[$key];
+            }
+        }
+
+        throw new \InvalidArgumentException(sprintf('Collection "%s" with "%s" field have not be apppend.', $className, $field));
     }
 
     /**
      * @param string $className
      *
-     * @return CollectionCenter
+     * @return CollectionCenter[]
      */
-    public function get($className)
+    public function getAll($className)
     {
-        return $this->collections[$className];
+        $collections = array();
+        foreach ($this->cursorClassName as $key => $cursor) {
+            if ($cursor === $className) {
+                $collections[] = $this->collections[$key];
+            }
+        }
+
+        return $collections;
     }
 
     /**
@@ -42,7 +79,7 @@ class CollectionCenterIterator implements \Iterator
      */
     public function current()
     {
-        return current($this->collections);
+        return $this->collections[$this->position];
     }
 
     /**
@@ -50,7 +87,7 @@ class CollectionCenterIterator implements \Iterator
      */
     public function next()
     {
-        next($this->collections);
+        ++$this->position;
     }
 
     /**
@@ -60,7 +97,7 @@ class CollectionCenterIterator implements \Iterator
      */
     public function key()
     {
-        return key($this->collections);
+        return $this->cursorClassName[$this->position];
     }
 
     /**
@@ -68,7 +105,7 @@ class CollectionCenterIterator implements \Iterator
      */
     public function valid()
     {
-        return null !== $this->key();
+        return isset($this->collections[$this->position]);
     }
 
     /**
@@ -76,7 +113,7 @@ class CollectionCenterIterator implements \Iterator
      */
     public function rewind()
     {
-        reset($this->collections);
+        $this->position = 0;
     }
 
     /**
@@ -88,10 +125,20 @@ class CollectionCenterIterator implements \Iterator
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function count()
+    {
+        return count($this->collections);
+    }
+
+    /**
      * Clean list.
      */
     public function clean()
     {
-        $this->collections = array();
+        $this->collections     = array();
+        $this->cursorClassName = array();
+        $this->position        = 0;
     }
 }
