@@ -52,12 +52,12 @@ class ModelPersisterTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals($model->entity->id, $model->document->id);
 
             if ($model->getId() == 3) {
-                $this->assertEquals(1, count($model->childrens));
+                $this->assertEquals(2, count($model->childrens));
             } else {
                 $this->assertEquals(0, count($model->childrens));
             }
 
-            if ($model->getId() == 5) {
+            if (in_array($model->getId(), array(1,5))) {
                 $this->assertInstanceOf('Pok\\PoolDBM\\Tests\\Fixtures\\Test1\\MultiModel', $model->parent);
             } else {
                 $this->assertNull($model->parent);

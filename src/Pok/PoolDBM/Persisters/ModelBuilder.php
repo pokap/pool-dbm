@@ -260,27 +260,30 @@ class ModelBuilder
                             continue;
                         }
 
-                        $assocs[$collection->getIdentifierRef()][$collection->getClassName()][$collection->getField()][$id][$manager] = $datas[$id][$manager];
+                        if (!isset($assocs[$collection->getIdentifierRef()][$id])) {
+                            $assocs[$collection->getIdentifierRef()][$id] = new CollectionCenterData($collection);
+                        }
+
+                        $assocs[$collection->getIdentifierRef()][$id]->addData($manager, $datas[$id][$manager]);
                     }
                 }
             }
 
-            foreach ($assocs as $idAssoc => $info) {
-                foreach ($info as $className => $fields) {
-                    foreach ($fields as $field => $assocResult) {
-                        $center = $this->collections->get($className, $field);
+            foreach ($assocs as $idRef => $collDatas) {
+                /** @var CollectionCenterData[] $collDatas */
+                foreach ($collDatas as $collData) {
+                    $collection = $collData->getCollectionCenter();
 
-                        if ($center->isMany()) {
-                            $listAssocs = array();
-
-                            foreach ($assocResult as $data) {
-                                $listAssocs[] = $this->createModel($className, $data);
-                            }
-                        } else {
-                            $listAssocs = $this->createModel($className, current($assocResult));
-                        }
-
-                        $result[$idAssoc][$field] = $listAssocs;
+                    if ($collection->isMany()) {
+                        $result[$idRef][$collection->getField()][] = $this->createModel(
+                            $collection->getClassName(),
+                            $collData->getDatas()
+                        );
+                    } else {
+                        $result[$idRef][$collection->getField()] = $this->createModel(
+                            $collection->getClassName(),
+                            $collData->getFirstData()
+                        );
                     }
                 }
             }

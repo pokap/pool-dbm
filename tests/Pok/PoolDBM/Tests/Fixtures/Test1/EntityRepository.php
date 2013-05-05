@@ -45,7 +45,9 @@ class EntityRepository
 
         // 5 is a children of 3
         $list[4]->parent = $list[2];
+        $list[0]->parent = $list[2];
         $list[2]->childrens[] = $list[4];
+        $list[2]->childrens[] = $list[0];
 
         return $list;
     }
