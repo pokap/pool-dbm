@@ -46,7 +46,9 @@ class ClassMetadataDebug extends ClassMetadata
             throw new \RuntimeException(sprintf('Model class "%s" must to be an instance of "%s"', get_class($model), $this->name));
         }
 
-        $method = 'get' . ucfirst($this->identifierField);
+        $field = (null !== $manager)? $this->getReferenceIdentifier($manager)->referenceField : $this->identifierField;
+
+        $method = 'get' . ucfirst($field);
         if (!method_exists($model, $method)) {
             throw new \RuntimeException(sprintf('You model "%s" must be implement method "%s".', get_class($model), $method));
         }

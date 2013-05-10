@@ -69,9 +69,13 @@ class ModelPersister
             ->getRepository($this->class->getFieldMapping($manager_id)->getName())
             ->findOneBy($criteria);
 
-        $builder = new ModelBuilder($this->manager, $this->uow, $this->getClassMetadata()->getAssociationDefinitions());
+        if (null === $model) {
+            return null;
+        }
 
-        return $builder->build($this->class, $model, $manager_id);
+        $builder = new ModelBuilder($this->manager, $this->uow, $this->class);
+
+        return $builder->build($model, $manager_id);
     }
 
     /**
@@ -101,8 +105,12 @@ class ModelPersister
             $data[$id] = $object;
         }
 
-        $builder = new ModelBuilder($this->manager, $this->uow, $this->getClassMetadata()->getAssociationDefinitions());
+        if (empty($data)) {
+            return array();
+        }
 
-        return $builder->buildAll($this->class, $data, $manager_id);
+        $builder = new ModelBuilder($this->manager, $this->uow, $this->class);
+
+        return $builder->buildAll($data, $manager_id);
     }
 }

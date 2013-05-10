@@ -28,64 +28,58 @@ class ModelBuilder
     /**
      * Constructor.
      *
-     * @param ModelManager            $manager
-     * @param UnitOfWork              $uow
-     * @param AssociationDefinition[] $assocDefinitions
+     * @param ModelManager  $manager
+     * @param UnitOfWork    $uow
+     * @param ClassMetadata $class
      */
-    public function __construct(ModelManager $manager, UnitOfWork $uow, array $assocDefinitions)
+    public function __construct(ModelManager $manager, UnitOfWork $uow, ClassMetadata $class)
     {
-        $this->manager          = $manager;
-        $this->uow              = $uow;
-        $this->assocDefinitions = $assocDefinitions;
+        $this->manager = $manager;
+        $this->uow     = $uow;
+        $this->class   = $class;
 
         $this->collections = new CollectionCenterIterator();
     }
 
     /**
-     * @param ClassMetadata $class
-     * @param object        $referenceModel
-     * @param string        $originManager
+     * @param object $referenceModel
+     * @param string $originManager
      *
      * @return object
      */
-    public function build(ClassMetadata $class, $referenceModel, $originManager)
+    public function build($referenceModel, $originManager)
     {
-        $this->getManagersPerCollection($class, array($referenceModel));
-        $result = $this->getResult($class->getName(), array($class->getIdentifierValue($referenceModel)), $class->getFieldManagerNames(), $originManager);
+        $this->getManagersPerCollection(array($referenceModel));
+        $result = $this->getResult(array($referenceModel), $originManager);
+
         if (!empty($result)) {
             $result = reset($result);
         }
 
         $result[$originManager] = $referenceModel;
 
-        return $this->createModel($class->getName(), $result);
+        return $this->createModel($this->class->getName(), $result);
     }
 
     /**
-     * @param ClassMetadata $class
-     * @param array         $referenceModels
-     * @param string        $originManager
+     * @param array  $referenceModels
+     * @param string $originManager
      *
      * @return object[]
      */
-    public function buildAll(ClassMetadata $class, array $referenceModels, $originManager)
+    public function buildAll(array $referenceModels, $originManager)
     {
-        $originIds = array_keys($referenceModels);
-        if (empty($originIds)) {
-            return array();
-        }
-
-        $this->getManagersPerCollection($class, $referenceModels);
-        $result = $this->getResult($class->getName(), $originIds, $class->getFieldManagerNames(), $originManager);
+        $this->getManagersPerCollection($referenceModels);
+        $result = $this->getResult($referenceModels, $originManager);
 
         // pre-init data
-        foreach ($originIds as $id) {
-            $result[$id][$originManager] = $referenceModels[$id];
+        foreach ($referenceModels as $id => $referenceModel) {
+            $result[$id][$originManager] = $referenceModel;
         }
 
         $models = array();
         foreach ($result as $data) {
-            $models[] = $this->createModel($class->getName(), $data);
+            $models[] = $this->createModel($this->class->getName(), $data);
         }
 
         return $models;
@@ -107,25 +101,26 @@ class ModelBuilder
     }
 
     /**
-     * @param string $className
-     * @param array  $ids
-     * @param array  $managers
+     * @param array $ids
+     * @param array $managers
      *
      * @return array
      */
-    protected function buildAndSortIdPerManager($className, array $ids, array $managers)
+    protected function buildAndSortIdPerManager(array $referenceModels, array $managers)
     {
         $result = array();
 
-        foreach ($managers as $manager) {
-            $result[$manager][$className] = $ids;
+        foreach ($referenceModels as $referenceModel) {
+            foreach ($managers as $manager) {
+                $result[$manager][$this->class->getName()][] = $this->class->getIdentifierValue($referenceModel, $manager);
+            }
         }
 
         foreach ($this->collections as $className => $collection) {
             /** @var CollectionCenter $collection */
             foreach ($collection->getManagers() as $manager) {
-                if (!isset($result[$manager])) {
-                    $result[$manager] = array($className => array());
+                if (!isset($result[$manager][$className])) {
+                    $result[$manager][$className] = array();
                 }
 
                 $result[$manager][$className] = array_unique(array_merge($result[$manager][$className], $collection->toArray()));
@@ -138,12 +133,13 @@ class ModelBuilder
     /**
      * Returns list of collection.
      *
-     * @param ClassMetadata $class
-     * @param object[]      $referenceModels
+     * @param object[] $referenceModels
      */
-    protected function getManagersPerCollection(ClassMetadata $class, array $referenceModels)
+    protected function getManagersPerCollection(array $referenceModels)
     {
-        foreach ($this->assocDefinitions as $assoc) {
+        $this->collections->clean();
+
+        foreach ($this->class->getAssociationDefinitions() as $assoc) {
             foreach ($referenceModels as $referenceModel) {
                 /** @var null|object|ArrayCollection $coll */
                 $coll = $referenceModel->{'get'.ucfirst($assoc->getReferenceField())}();
@@ -152,7 +148,7 @@ class ModelBuilder
                     continue;
                 }
 
-                $this->collections->append(new CollectionCenter($assoc, $this->manager->getClassMetadata($assoc->getTargetMultiModel()), $coll, $class->getIdentifierValue($referenceModel)));
+                $this->collections->append(new CollectionCenter($assoc, $this->manager->getClassMetadata($assoc->getTargetMultiModel()), $coll, $this->class->getIdentifierValue($referenceModel)));
             }
         }
     }
@@ -172,21 +168,22 @@ class ModelBuilder
 
         if ($methodFind) {
             foreach ($pool->getManager($manager)->getRepository($class->getName())->$methodFind($ids) as $object) {
-                $id = $class->getIdentifierValue($object, $manager);
+                $id = $class->getIdentifierValue($object);
 
-                $data[$id][$manager] = $object;
+                $data[$id] = $object;
             }
         } else {
             trigger_error(sprintf('findOneBy in ModelPersister::loadAll context is depreciate. Define repository-method for "%s" manager model, see mapping for "%s".', $manager, $class->getName()), E_USER_DEPRECATED);
 
             $repository = $pool->getManager($manager)->getRepository($class->getName());
+            $field      = $class->getReferenceIdentifier($manager)->field;
 
             foreach ($ids as $id) {
-                $object = $repository->findOneBy(array($class->getFieldIdentifier() => $id));
+                $object = $repository->findOneBy(array($field => $id));
 
                 $id = $class->getIdentifierValue($object, $manager);
 
-                $data[$id][$manager] = $object;
+                $data[$id] = $object;
             }
         }
 
@@ -194,45 +191,40 @@ class ModelBuilder
     }
 
     /**
-     * @param string $originClassName
      * @param array  $ids
-     * @param array  $originManagers
      * @param string $ignoreOriginManager
      *
      * @return array
      */
-    protected function getResult($originClassName, array $ids, array $originManagers, $ignoreOriginManager)
+    protected function getResult(array $referenceModels, $ignoreOriginManager)
     {
+        $originManagers = $this->class->getFieldManagerNames();
+
         $result = array();
         $resultByClass = array();
         $datas  = array();
         $assocs = array();
 
         // pool data by id & manager
-        foreach ($this->buildAndSortIdPerManager($originClassName, $ids, array_diff($originManagers, array($ignoreOriginManager))) as $manager => $info) {
+        foreach ($this->buildAndSortIdPerManager($referenceModels, array_diff($originManagers, array($ignoreOriginManager))) as $manager => $info) {
             foreach ($info as $className => $ids) {
                 foreach ($this->relayLoadModels($this->manager->getClassMetadata($className), $manager, $ids) as $id => $data) {
-                    if (!isset($datas[$id])) {
-                        $datas[$id] = $data;
-                    } else {
-                        $datas[$id] += $data;
-                    }
+                    $datas[$className][$id][$manager] = $data;
 
                     $resultByClass[$className][] = $id;
                 }
             }
         }
 
-        if (isset($resultByClass[$originClassName])) {
-            foreach ($resultByClass[$originClassName] as $id) {
-                $datas_managers = array_keys($datas[$id]);
-
+        if (isset($datas[$this->class->getName()])) {
+            foreach ($referenceModels as $referenceModel) {
                 foreach ($originManagers as $manager) {
-                    if (!in_array($manager, $datas_managers)) {
-                        continue;
-                    }
+                    $id        = $this->class->getIdentifierValue($referenceModel);
+                    $managerId = $this->class->getIdentifierValue($referenceModel, $manager);
 
-                    $result[$id][$manager] = $datas[$id][$manager];
+                    if (isset($datas[$this->class->getName()][$managerId][$manager])) {
+                        $result[$id][$manager] = $datas[$this->class->getName()][$managerId][$manager];
+                    }
                 }
             }
         }
@@ -251,12 +243,12 @@ class ModelBuilder
 
                     $class = $this->manager->getClassMetadata($collection->getClassName());
 
-                    if (!isset($datas[$id][$class->getManagerIdentifier()])) {
+                    if (!isset($datas[$collection->getClassName()][$id][$class->getManagerIdentifier()])) {
                         continue;
                     }
 
                     foreach ($collection->getManagers() as $manager) {
-                        if (!isset($datas[$id][$manager])) {
+                        if (!isset($datas[$collection->getClassName()][$id][$manager])) {
                             continue;
                         }
 
@@ -264,7 +256,7 @@ class ModelBuilder
                             $assocs[$collection->getIdentifierRef()][$id] = new CollectionCenterData($collection);
                         }
 
-                        $assocs[$collection->getIdentifierRef()][$id]->addData($manager, $datas[$id][$manager]);
+                        $assocs[$collection->getIdentifierRef()][$id]->addData($manager, $datas[$collection->getClassName()][$id][$manager]);
                     }
                 }
             }

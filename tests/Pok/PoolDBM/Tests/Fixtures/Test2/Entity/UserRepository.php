@@ -1,8 +1,8 @@
 <?php
 
-namespace Pok\PoolDBM\Tests\Fixtures\Test1;
+namespace Pok\PoolDBM\Tests\Fixtures\Test2\Entity;
 
-class EntityRepository
+class UserRepository
 {
     public static $count = 0;
 
@@ -19,7 +19,7 @@ class EntityRepository
 
         $list = array();
         foreach ($ids as $id) {
-            $entity = new Entity;
+            $entity = new User;
             $entity->id = $id;
 
             $list[] = $entity;
@@ -33,18 +33,28 @@ class EntityRepository
         self::$count++;
 
         $list = array();
-        foreach (range(1, 5) as $id) {
-            $entity = new Entity;
+        foreach (range(1, 2) as $id) {
+            $entity = new User;
             $entity->id = $id;
 
             $list[] = $entity;
         }
 
-        // 5 is a children of 3
-        $list[4]->parent = $list[2];
-        $list[0]->parent = $list[2];
-        $list[2]->childrens[] = $list[4];
-        $list[2]->childrens[] = $list[0];
+        $group1 = new Group;
+        $group1->id = 1;
+        $group1->documentId = 5;
+        $group1->users[] = $list[0];
+        $group1->users[] = $list[1];
+
+        $group2 = new Group;
+        $group2->id = 2;
+        $group2->documentId = 5;
+        $group2->users[] = $list[0];
+
+        $list[0]->groups[] = $group1;
+        $list[0]->groups[] = $group2;
+
+        $list[1]->groups[] = $group1;
 
         return $list;
     }

@@ -35,7 +35,7 @@ Mapping:
 
 <multi-model model="MultiModel\User" repository-class="Repository\UserRepository">
     <model-reference manager="entity" field="dataId">
-        <reference manager="document" field="id" />
+        <reference manager="document" field="id" reference-field="id" />
 
         <id-generator target-manager="document" />
     </model-reference>

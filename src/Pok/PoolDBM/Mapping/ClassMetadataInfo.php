@@ -125,11 +125,16 @@ class ClassMetadataInfo implements ClassMetadataInterface
 
     /**
      * @param string $manager
+     * @param string $referenceField
      * @param string $field
      */
-    public function addRefenceIdentifier($manager, $field)
+    public function addRefenceIdentifier($manager, $referenceField, $field)
     {
-        $this->identifierReferences[$manager] = $field;
+        $rule = new \stdClass();
+        $rule->referenceField = $referenceField;
+        $rule->field          = $field;
+
+        $this->identifierReferences[$manager] = $rule;
     }
 
     /**
@@ -138,12 +143,16 @@ class ClassMetadataInfo implements ClassMetadataInterface
      *
      * @param string $manager
      *
-     * @return string
+     * @return \stdClass
      */
     public function getReferenceIdentifier($manager)
     {
         if (!isset($this->identifierReferences[$manager])) {
-            return $this->identifierField;
+            $rule = new \stdClass();
+            $rule->referenceField = $this->identifierField;
+            $rule->field          = $this->identifierField;
+
+            return $rule;
         }
 
         return $this->identifierReferences[$manager];
@@ -287,7 +296,7 @@ class ClassMetadataInfo implements ClassMetadataInterface
      */
     public function getIdentifierValue($model, $manager = null)
     {
-        $field = (null !== $manager)? $this->getReferenceIdentifier($manager) : $this->identifierField;
+        $field = (null !== $manager)? $this->getReferenceIdentifier($manager)->referenceField : $this->identifierField;
 
         return $model->{'get' . ucfirst($field)}();
     }
