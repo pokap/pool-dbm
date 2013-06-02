@@ -324,6 +324,16 @@ class ClassMetadataInfo implements ClassMetadataInterface
     }
 
     /**
+     * Returns list of model definitions.
+     *
+     * @return ModelDefinition[]
+     */
+    public function getFieldMappings()
+    {
+        return $this->fieldMappings;
+    }
+
+    /**
      * @return array
      */
     public function getFieldManagerNames()

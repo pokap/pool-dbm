@@ -1,0 +1,38 @@
+<?php
+
+namespace {{ model_namespace }};
+
+class {{ model_name }}
+{
+{% for name, refl in managers %}
+    public ${{ name }};
+{% endfor %}
+
+    /**
+     * Constructor.
+     */
+    public function __construct()
+    {
+{% for name, refl in managers %}
+        $this->{{ name }} = new {{ refl.namespace }}();
+{% endfor %}
+    }
+{# setter/getter #}
+{% for name, refl in managers %}
+{% for method in refl.methods %}
+{% if method.comment is not empty %}
+    {{ method.comment }}
+{% endif %}
+    public function {{ method.name }}({{ method.arguments|join(', ') }})
+    {
+{% if 'getter' == method.type %}
+        return $this->{{ name }}->{{ method.name }}({{ method.arguments|join(', ') }});
+{% else %}
+        $this->{{ name }}->{{ method.name }}({{ method.arguments|join(', ') }});
+
+        return $this;
+{% endif %}
+    }
+{% endfor %}
+{% endfor %}
+}

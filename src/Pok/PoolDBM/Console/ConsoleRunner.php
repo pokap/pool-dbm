@@ -5,6 +5,9 @@ namespace Pok\PoolDBM\Console;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Helper\HelperSet;
 
+use Pok\PoolDBM\Console\Helper\ModelManagerHelper;
+use Pok\PoolDBM\Console\Helper\TemplateEngineHelper;
+use Pok\PoolDBM\Console\Helper\TemplateHelperInterface;
 use Pok\PoolDBM\Console\Command as PoolDBMCommand;
 use Pok\PoolDBM\ModelManager;
 use Pok\PoolDBM\Version;
@@ -18,14 +21,18 @@ class ConsoleRunner
     /**
      * Create a Symfony Console HelperSet
      *
-     * @param ModelManager $modelManager
+     * @param ModelManager            $modelManager
+     * @param TemplateHelperInterface $template (optional)
      *
      * @return HelperSet
      */
-    public static function createHelperSet(ModelManager $modelManager)
+    public static function createHelperSet(ModelManager $modelManager, TemplateHelperInterface $template = null)
     {
+        $resources_dir = __DIR__ . '/../Resources';
+
         return new HelperSet(array(
-            'modelManager' => new ModelManagerHelper($modelManager)
+            'modelManager' => new ModelManagerHelper($modelManager),
+            'template'     => ($template?: new TemplateEngineHelper($resources_dir, array('cache' => $resources_dir . '/cache')))
         ));
     }
 
@@ -58,5 +65,4 @@ class ConsoleRunner
             new PoolDBMCommand\GenerateMultiModelCommand()
         ));
     }
-
 }

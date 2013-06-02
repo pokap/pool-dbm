@@ -1,6 +1,6 @@
 <?php
 
-namespace Pok\PoolDBM\Console;
+namespace Pok\PoolDBM\Console\Helper;
 
 use Symfony\Component\Console\Helper\Helper;
 
