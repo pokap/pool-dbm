@@ -2,6 +2,7 @@
 
 namespace Pok\PoolDBM;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
 /**
@@ -14,35 +15,47 @@ use Doctrine\Common\Collections\Collection;
 class PersistentCollection implements Collection
 {
     /**
-     * @var Collection
+     * @var ArrayCollection
      */
-    private $coll;
+    protected $coll;
 
     /**
-     * @param ModelManager $manager
+     * @var ModelManager
      */
-    private $manager;
+    protected $manager;
 
     /**
-     * @var boolean
+     * @var string
      */
-    private $initialized;
+    protected $fieldName;
+
+    /**
+     * @var object
+     */
+    protected $model;
+
+    /**
+     * @var \Pok\PoolDBM\Mapping\ClassMetadata
+     */
+    protected $metadata;
 
     /**
      * Constructor.
      *
-     * @param object $model Model instance
+     * @param object $model     Model instance
+     * @parma string $fieldName
      *
      * @throws \InvalidArgumentException
      */
-    public function __construct($model)
+    public function __construct($model, $fieldName)
     {
         if (!is_object($model)) {
             throw new \InvalidArgumentException(sprintf('Argument 1 passed must be a model instance, %s given.', gettype($model)));
         }
 
-        $this->model       = $model;
-        $this->initialized = false;
+        $this->fieldName = $fieldName;
+        $this->model     = $model;
+        $this->coll      = new ArrayCollection();
     }
 
     /**
@@ -52,45 +65,11 @@ class PersistentCollection implements Collection
      */
     public function setModelManager(ModelManager $manager)
     {
-        $class = $manager->getClassMetadata(get_class($this->model));
-
-        $this->manager = $manager;
-        $this->coll    = $this->model->{'get'.ucfirst($class->getManagerIdentifier())}();
+        $this->metadata = $manager->getClassMetadata(get_class($this->model));
+        $this->manager  = $manager;
 
         if (!$this->coll instanceof Collection) {
             throw new \RuntimeException(sprintf('Method %s::get%s() must return instance of \\Doctrine\\Common\\Collections\\Collection.', get_class($this->model), ucfirst($class->getManagerIdentifier())));
-        }
-    }
-
-    /**
-     * Initializes the collection by loading its contents from the database
-     * if the collection is not yet initialized.
-     */
-    public function initialize()
-    {
-        if (null === $this->manager) {
-            throw new \RuntimeException('Manger must be set.');
-        }
-
-        if ($this->initialized) {
-            return;
-        }
-
-        $this->initialized = true;
-
-        $this->coll->clear();
-        $this->manager->getUnitOfWork()->loadCollection($this);
-
-        // Reattach NEW objects added through add(), if any.
-        if (isset($newObjects)) {
-            foreach ($newObjects as $key => $obj) {
-                if ($this->mapping['strategy'] === 'set') {
-                    $this->coll->set($key, $obj);
-                } else {
-                    $this->coll->add($obj);
-                }
-            }
-            $this->isDirty = true;
         }
     }
 
@@ -99,7 +78,9 @@ class PersistentCollection implements Collection
      */
     public function add($element)
     {
-        return $this->coll->add($element);
+        $this->exec($element, 'add');
+
+        return true;
     }
 
     /**
@@ -107,7 +88,7 @@ class PersistentCollection implements Collection
      */
     public function clear()
     {
-        if ($this->initialized && $this->isEmpty()) {
+        if ($this->isEmpty()) {
             return;
         }
 
@@ -119,8 +100,6 @@ class PersistentCollection implements Collection
      */
     public function contains($element)
     {
-        $this->initialize();
-
         return $this->coll->contains($element);
     }
 
@@ -129,7 +108,7 @@ class PersistentCollection implements Collection
      */
     public function isEmpty()
     {
-        return 0 === $this->coll->count();
+        return $this->coll->isEmpty();
     }
 
     /**
@@ -137,13 +116,7 @@ class PersistentCollection implements Collection
      */
     public function remove($key)
     {
-        $this->initialize();
-
-        if ($removed = $this->coll->remove($key)) {
-            // @todo remove all sub-element (manager) in model
-        }
-
-        return $removed;
+        return $this->exec($key, 'remove');
     }
 
     /**
@@ -151,13 +124,7 @@ class PersistentCollection implements Collection
      */
     public function removeElement($element)
     {
-        $this->initialize();
-
-        if ($removed = $this->coll->removeElement($element)) {
-            // @todo remove all sub-element (manager) in model
-        }
-
-        return $removed;
+        return $this->exec($element, 'removeElement');
     }
 
     /**
@@ -165,8 +132,6 @@ class PersistentCollection implements Collection
      */
     public function containsKey($key)
     {
-        $this->initialize();
-
         return $this->coll->containsKey($key);
     }
 
@@ -175,8 +140,6 @@ class PersistentCollection implements Collection
      */
     public function get($key)
     {
-        $this->initialize();
-
         return $this->coll->get($key);
     }
 
@@ -185,8 +148,6 @@ class PersistentCollection implements Collection
      */
     public function getKeys()
     {
-        $this->initialize();
-
         return $this->coll->getKeys();
     }
 
@@ -195,8 +156,6 @@ class PersistentCollection implements Collection
      */
     public function getValues()
     {
-        $this->initialize();
-
         return $this->coll->getValues();
     }
 
@@ -205,7 +164,7 @@ class PersistentCollection implements Collection
      */
     public function set($key, $value)
     {
-        $this->coll->set($key, $value);
+        return $this->exec($value, 'set', $key);
     }
 
     /**
@@ -213,8 +172,6 @@ class PersistentCollection implements Collection
      */
     public function toArray()
     {
-        $this->initialize();
-
         return $this->coll->toArray();
     }
 
@@ -223,8 +180,6 @@ class PersistentCollection implements Collection
      */
     public function first()
     {
-        $this->initialize();
-
         return $this->coll->first();
     }
 
@@ -233,8 +188,6 @@ class PersistentCollection implements Collection
      */
     public function last()
     {
-        $this->initialize();
-
         return $this->coll->last();
     }
 
@@ -267,8 +220,6 @@ class PersistentCollection implements Collection
      */
     public function exists(\Closure $p)
     {
-        $this->initialize();
-
         return $this->coll->exists($p);
     }
 
@@ -277,8 +228,6 @@ class PersistentCollection implements Collection
      */
     public function filter(\Closure $p)
     {
-        $this->initialize();
-
         return $this->coll->filter($p);
     }
 
@@ -287,8 +236,6 @@ class PersistentCollection implements Collection
      */
     public function forAll(\Closure $p)
     {
-        $this->initialize();
-
         return $this->coll->forAll($p);
     }
 
@@ -297,8 +244,6 @@ class PersistentCollection implements Collection
      */
     public function map(\Closure $func)
     {
-        $this->initialize();
-
         return $this->coll->map($func);
     }
 
@@ -307,8 +252,6 @@ class PersistentCollection implements Collection
      */
     public function partition(\Closure $p)
     {
-        $this->initialize();
-
         return $this->coll->partition($p);
     }
 
@@ -317,8 +260,6 @@ class PersistentCollection implements Collection
      */
     public function indexOf($element)
     {
-        $this->initialize();
-
         return $this->coll->indexOf($element);
     }
 
@@ -327,8 +268,6 @@ class PersistentCollection implements Collection
      */
     public function slice($offset, $length = null)
     {
-        $this->initialize();
-
         return $this->coll->slice($offset, $length);
     }
 
@@ -337,8 +276,6 @@ class PersistentCollection implements Collection
      */
     public function getIterator()
     {
-        $this->initialize();
-
         return $this->coll->getIterator();
     }
 
@@ -386,5 +323,37 @@ class PersistentCollection implements Collection
     public function count()
     {
         return $this->coll->count();
+    }
+
+    /**
+     * Exec function with element like parameter.
+     *
+     * @param mixed      $element
+     * @param string     $func
+     * @param mixed|null $key     (optional)
+     *
+     * @return mixed
+     */
+    protected function exec($element, $func, $key = NULL)
+    {
+        $assoc  = $this->metadata->getAssociationDefinition($this->fieldName);
+
+        foreach ($assoc->getManagerNames() as $managerName) {
+            $coll = $this->model
+                ->{'get'.ucfirst($managerName)}()
+                ->{'get'.ucfirst($assoc->getFieldNameByManagerName($managerName))};
+
+            if ($key) {
+                call_user_func_array(array($coll, $func), $key, $element->{'get' . ucfirst($managerName)}());
+            } else {
+                call_user_func_array(array($coll, $func), $element->{'get' . ucfirst($managerName)}());
+            }
+        }
+
+        if ($key) {
+            return call_user_func(array($this->coll, $func), $key, $element);
+        } else {
+            return call_user_func(array($this->coll, $func), $element);
+        }
     }
 }

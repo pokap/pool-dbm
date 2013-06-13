@@ -48,10 +48,8 @@ Mapping:
         <field name="profileContent" />
     </model>
 
-    <relation-one field="address" target-model="MultiModel\Address" reference-field="addressId">
-        <cascade>
-            <all />
-        </cascade>
+    <relation-one field="address" target-model="MultiModel\Address">
+        <field-reference manager="document" field="addressUser" />
     </relation-one>
 </multi-model>
 ```
