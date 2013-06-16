@@ -2,7 +2,7 @@
 
 namespace Pok\PoolDBM\Tests\Fixtures\Test1;
 
-use Doctrine\Common\Collections\ArrayCollection;
+use Pok\PoolDBM\Collections\ArrayCollection;
 
 class MultiModel
 {
@@ -17,12 +17,19 @@ class MultiModel
         $this->entity = new Entity();
         $this->document = new Document();
 
-        $this->childrens = new ArrayCollection();
+        $this->childrens = new ArrayCollection($this, array(
+            'entity' => 'getChildrens'
+        ));
     }
 
     public function setEntity($entity)
     {
         $this->entity = $entity;
+    }
+
+    public function getEntity()
+    {
+        return $this->entity;
     }
 
     public function setDocument($document)

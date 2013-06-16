@@ -23,7 +23,7 @@ class GenerateMultiModelCommand extends Command
      */
     protected function configure()
     {
-        $this->setName('pok:pool-dbm:model:generate');
+        $this->setName('pok:pool-dbm:generate:model');
         $this->setDescription('Generate multi-model');
 
         $this->addArgument('dest-path', InputArgument::REQUIRED,
@@ -32,7 +32,7 @@ class GenerateMultiModelCommand extends Command
         $this->addOption('template-name', 'tn', InputOption::VALUE_OPTIONAL,
             'Template filename for generate your model classes.', 'model_generate.php.twig'
         );
-        $this->addOption('extend', null, InputOption::VALUE_OPTIONAL,
+        $this->addOption('extends', null, InputOption::VALUE_OPTIONAL,
             'Defines a base class to be extended by generated model classes.'
         );
         $this->addOption('auto-update', 'auto-up', InputOption::VALUE_OPTIONAL,
@@ -42,7 +42,6 @@ class GenerateMultiModelCommand extends Command
             'Flag to define if generator should only pass model if it exists, without interaction.', false
         );
     }
-
 
     /**
      * {@inheritdoc}
@@ -65,10 +64,11 @@ class GenerateMultiModelCommand extends Command
 
         foreach ($metadata->getAllClassNames() as $className) {
             $parameters = $this->buildParameters($className);
+            $parameters['extends'] = $input->getOption('extends');
 
             $filename = sprintf('%s%s%s.php', $path, DIRECTORY_SEPARATOR, $parameters['model_name']);
 
-            if ($filesystem->exists($filename) && ($no_update || !$auto_update || !$dialog->askConfirmation($output, sprintf('<question>MultiModel "%s" already exists, Do you want to overwrite it? (y,N) </question>', $parameters['model_name']), false))) {
+            if (!$auto_update && $filesystem->exists($filename) && ($no_update || !$dialog->askConfirmation($output, sprintf('<question>MultiModel "%s" already exists, Do you want to overwrite it? (y,N) </question>', $parameters['model_name']), false))) {
                 continue;
             }
 
@@ -129,12 +129,27 @@ class GenerateMultiModelCommand extends Command
             }
         }
 
+        $associations = new Bag();
+        foreach ($metadata->getAssociationDefinitions() as $definition) {
+            if ($definition->isMany()) {
+                $associations->many[$definition->getField()] = array(
+                    'fields'    => $definition->getReferences(),
+                    'className' => $definition->getTargetMultiModel()
+                );
+            } else {
+                $associations->one[$definition->getField()] = array(
+                    'className' => $definition->getTargetMultiModel()
+                );
+            }
+        }
+
         $occ = strrpos($metadata->getName(), '\\');
 
         return array(
             'model_namespace' => substr($metadata->getName(), 0, $occ),
             'model_name'      => substr($metadata->getName(), $occ + 1),
-            'managers'        => $managers
+            'managers'        => $managers,
+            'associations'    => $associations
         );
     }
 
@@ -143,7 +158,7 @@ class GenerateMultiModelCommand extends Command
      */
     protected function getModelManager()
     {
-        return $this->getHelper('modelManager');
+        return $this->getHelper('modelManager')->getModelManager();
     }
 
     /**
@@ -158,5 +173,38 @@ class GenerateMultiModelCommand extends Command
         }
 
         return sprintf('`^([a-z]+)(%s)$`', implode('|', $fields));
+    }
+}
+
+/**
+ * Class Bag
+ *
+ * @access private
+ */
+class Bag
+{
+    public $one;
+    public $many;
+
+    /**
+     * Constructor.
+     *
+     * @param array $one
+     * @param array $many
+     */
+    public function __constructor(array $one = array(), array $many = array())
+    {
+        $this->one  = $one;
+        $this->many = $many;
+    }
+
+    /**
+     * Returns all associations
+     *
+     * @return array
+     */
+    public function getAll()
+    {
+        return $this->one + $this->many;
     }
 }

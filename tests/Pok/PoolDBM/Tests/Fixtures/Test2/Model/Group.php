@@ -2,8 +2,7 @@
 
 namespace Pok\PoolDBM\Tests\Fixtures\Test2\Model;
 
-use Doctrine\Common\Collections\ArrayCollection;
-
+use Pok\PoolDBM\Collections\ArrayCollection;
 use Pok\PoolDBM\Tests\Fixtures\Test2\Entity\Group as EntityGroup;
 use Pok\PoolDBM\Tests\Fixtures\Test2\Document\Group as DocumentGroup;
 
@@ -18,12 +17,19 @@ class Group
         $this->entity   = new EntityGroup();
         $this->document = new DocumentGroup();
 
-        $this->users = new ArrayCollection();
+        $this->users = new ArrayCollection($this, array(
+            'entity' => 'getUsers'
+        ));
     }
 
     public function setEntity($entity)
     {
         $this->entity = $entity;
+    }
+
+    public function getEntity()
+    {
+        return $this->entity;
     }
 
     public function setDocument($document)

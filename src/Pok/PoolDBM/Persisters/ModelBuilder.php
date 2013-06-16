@@ -142,7 +142,7 @@ class ModelBuilder
         foreach ($this->class->getAssociationDefinitions() as $assoc) {
             foreach ($referenceModels as $referenceModel) {
                 /** @var null|object|ArrayCollection $coll */
-                $coll = $referenceModel->{'get'.ucfirst($assoc->getReferenceField())}();
+                $coll = $referenceModel->{'get'.ucfirst($assoc->getReferenceField($this->class->getManagerIdentifier()))}();
 
                 if (null === $coll || $assoc->isMany() && $coll->isEmpty()) {
                     continue;

@@ -31,7 +31,7 @@ class ModelManagerHelper extends Helper
      *
      * @return ModelManager
      */
-    public function getEntityManager()
+    public function getModelManager()
     {
         return $this->modelManager;
     }

@@ -12,8 +12,7 @@ class AssociationDefinition
     protected $field;
     protected $targetMultiModel;
     protected $isCollection;
-    protected $cascade;
-    protected $referenceField;
+    protected $references;
 
     /**
      * Constructor.
@@ -27,6 +26,8 @@ class AssociationDefinition
         $this->field            = $field;
         $this->targetMultiModel = $targetMultiModel;
         $this->isCollection     = $isCollection;
+
+        $this->references = array();
     }
 
     /**
@@ -46,51 +47,35 @@ class AssociationDefinition
     }
 
     /**
-     * @param string $referenceField
+     * @param array $references
      *
      * @return AssociationDefinition
      */
-    public function setReferenceField($referenceField)
+    public function setReferences(array $references)
     {
-        $this->referenceField = $referenceField;
+        $this->references = $references;
 
         return $this;
     }
 
     /**
-     * @return boolean
+     * Returns list of reference field per manager name.
+     *
+     * @return array
      */
-    public function hasReferenceField()
+    public function getReferences()
     {
-        return null !== $this->referenceField;
+        return $this->references;
     }
 
     /**
+     * @param string $managerName
+     *
      * @return string
      */
-    public function getReferenceField()
+    public function getReferenceField($managerName)
     {
-        return $this->referenceField ?: $this->field;
-    }
-
-    /**
-     * @param array $cascade
-     *
-     * @return AssociationDefinition
-     */
-    public function setCascade(array $cascade)
-    {
-        $this->cascade = $cascade;
-
-        return $this;
-    }
-
-    /**
-     * @return null|array
-     */
-    public function getCascade()
-    {
-        return $this->cascade;
+        return isset($this->references[$managerName])? $this->references[$managerName] : $this->field;
     }
 
     /**
