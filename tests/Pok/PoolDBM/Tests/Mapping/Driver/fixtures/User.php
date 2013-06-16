@@ -2,20 +2,25 @@
 
 namespace TestMultiModel;
 
-class User {
+class User
+{
     protected $entity;
     protected $document;
 
-    public function setEntity($entity) {
+    public function setEntity($entity)
+    {
         $this->entity = $entity;
     }
-    public function getEntity() {
+    public function getEntity()
+    {
         return $this->entity;
     }
-    public function setDocument($document) {
+    public function setDocument($document)
+    {
         $this->document = $document;
     }
-    public function getDocument() {
+    public function getDocument()
+    {
         return $this->document;
     }
 }

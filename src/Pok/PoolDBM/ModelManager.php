@@ -23,7 +23,7 @@ class ModelManager implements ObjectManager
     private $metadataFactory;
 
     /**
-     * @var MappingDriverChain 
+     * @var MappingDriverChain
      */
     private $metadataDriverImpl;
 
@@ -191,8 +191,8 @@ class ModelManager implements ObjectManager
     }
 
     /**
-     * @param string $modelName  The name of the Model.
-     * @return DocumentRepository  The repository.
+     * @param  string             $modelName The name of the Model.
+     * @return DocumentRepository The repository.
      */
     public function getRepository($modelName)
     {
@@ -271,6 +271,41 @@ class ModelManager implements ObjectManager
         }
 
         return true;
+    }
+
+    /**
+     * Executes a function in a transaction.
+     *
+     * If an exception occurs during execution of the function or flushing or transaction commit,
+     * the transaction is rolled back, close and exception re-throw.
+     *
+     * If the manager who throw the exception do not support the transaction, he will try to remove
+     * model saved with success.
+     *
+     * @param callable $func The function to execute transactional
+     *
+     * @return mixed The non-empty value returned from the closure or model instead
+     *
+     * @throws \Exception When transaction fail
+     */
+    public function transactional($func)
+    {
+        $transaction = new Transaction($this);
+        $transaction->beginTransaction();
+
+        try {
+            $return = call_user_func($func, $transaction);
+
+            $this->flush();
+            $transaction->commit();
+
+            return $return ?: true;
+        } catch (\Exception $e) {
+            $this->close();
+            $transaction->rollback();
+
+            throw $e;
+        }
     }
 
     /**

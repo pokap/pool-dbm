@@ -2,8 +2,6 @@
 
 namespace Pok\PoolDBM\Tests\Manager;
 
-use Doctrine\Common\Persistence\Doctrine;
-
 use Pok\PoolDBM\Tests\Mocks\ObjectManagerMock;
 use Pok\PoolDBM\ModelManager;
 use Pok\PoolDBM\Manager\BaseManager;
@@ -55,63 +53,98 @@ class BaseManagerTest extends \PHPUnit_Framework_TestCase
     }
 }
 
-class ModelTest {
-    public function getEntity() {
-        return '$ENTITYCLASS';
+class ModelTest
+{
+    protected $entity;
+
+    public function __construct()
+    {
+        $this->entity = new EntityTest();
     }
-    public function setEntity($entity) {}
+
+    public function getId()
+    {
+        return $this->entity->getId();
+    }
+
+    public function getEntity()
+    {
+        return $this->entity;
+    }
+
+    public function setEntity($entity)
+    {
+        $this->entity = $entity;
+    }
 }
 
-class EntityTest {
-    public function getId() {
-        return null;
+class EntityTest
+{
+    public function setId($id)
+    {
+    }
+
+    public function getId()
+    {
+        return 1;
     }
 }
 
-class EntityManager extends ObjectManagerMock {
-    public function getRepository($entityClass) {
+class EntityManager extends ObjectManagerMock
+{
+    public function getRepository($entityClass)
+    {
         return new EntityRepository();
     }
 
-    public function persist($entity) {
-        if ('$ENTITYCLASS' != $entity) {
+    public function persist($entity)
+    {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }
 
-    public function remove($entity) {
-        if ('$ENTITYCLASS' != $entity) {
+    public function remove($entity)
+    {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }
 
-    public function flush($entity = null) {
+    public function flush($entity = null)
+    {
         if (null !== $entity) {
             throw new \RuntimeException();
         }
     }
 
-    public function clear($entity = null) {
+    public function clear($entity = null)
+    {
         if (null !== $entity) {
             throw new \RuntimeException();
         }
     }
 }
 
-class EntityRepository {
-    public function find($id) {
+class EntityRepository
+{
+    public function find($id)
+    {
         return new EntityTest();
     }
 
-    public function findBy(array $criteria, array $order = null, $limit = null, $offset = null) {
+    public function findBy(array $criteria, array $order = null, $limit = null, $offset = null)
+    {
         return array(new EntityTest());
     }
 
-    public function findOneBy(array $criteria) {
+    public function findOneBy(array $criteria)
+    {
         return new EntityTest();
     }
 
-    public function findAll() {
+    public function findAll()
+    {
         return array(new EntityTest());
     }
 }
