@@ -36,14 +36,22 @@ Mapping:
 ``` xml
 
 <multi-model model="MultiModel\User" repository-class="Repository\UserRepository">
-    <model-reference manager="odm" field="id" />
+    <model-reference manager="entity" field="dataId">
+        <reference manager="document" field="id" reference-field="id" />
 
-    <model manager="orm" name="Entity\User" repository-method="findByIds">
+        <id-generator target-manager="document" />
+    </model-reference>
+
+    <model manager="entity" name="Entity\User" repository-method="findByIds">
         <field name="name" />
     </model>
 
-    <model manager="odm" name="Document\User">
+    <model manager="document" name="Document\User">
         <field name="profileContent" />
     </model>
+
+    <relation-one field="address" target-model="MultiModel\Address">
+        <field-reference manager="document" field="addressUser" />
+    </relation-one>
 </multi-model>
 ```

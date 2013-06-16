@@ -7,6 +7,13 @@ use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
 
 class MetadataDriverMock extends MappingDriverChain
 {
+    protected $classNames;
+
+    public function __construct(array $classNames = array())
+    {
+        $this->classNames = $classNames;
+    }
+
     public function loadMetadataForClass($className, ClassMetadata $metadata)
     {
         return;
@@ -19,6 +26,6 @@ class MetadataDriverMock extends MappingDriverChain
 
     public function getAllClassNames()
     {
-        return array();
+        return $this->classNames;
     }
 }

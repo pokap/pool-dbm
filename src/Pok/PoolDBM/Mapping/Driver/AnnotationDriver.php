@@ -58,15 +58,16 @@ class AnnotationDriver extends AbstractAnnotationDriver
     /**
      * Factory method for the Annotation Driver
      *
-     * @param array|string $paths
-     * @param Reader $reader
+     * @param  array|string     $paths
+     * @param  Reader           $reader
      * @return AnnotationDriver
      */
-    static public function create($paths = array(), Reader $reader = null)
+    public static function create($paths = array(), Reader $reader = null)
     {
         if ($reader == null) {
             $reader = new AnnotationReader();
         }
+
         return new self($reader, $paths);
     }
 }

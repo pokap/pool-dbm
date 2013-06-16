@@ -71,64 +71,92 @@ class ModelManagerTest extends \PHPUnit_Framework_TestCase
 
 class ModelTest
 {
-    public function getEntity() {
-        return '$ENTITYCLASS';
+    protected $entity;
+
+    public function __construct()
+    {
+        $this->entity = new EntityTest();
+    }
+
+    public function getEntity()
+    {
+        return $this->entity;
     }
 }
 
 class EntityTest
 {
-    private $id;
+    private $id = 1;
+
+    public function setId($id)
+    {
+        $this->id = $id;
+    }
+
+    public function getId()
+    {
+        return $this->id;
+    }
 }
 
-class EntityManager extends ObjectManagerMock {
-    public function getRepository($entityClass) {
+class EntityManager extends ObjectManagerMock
+{
+    public function getRepository($entityClass)
+    {
         return new EntityRepository();
     }
 
-    public function persist($entity) {
-        if ('$ENTITYCLASS' != $entity) {
+    public function persist($entity)
+    {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }
 
-    public function remove($entity) {
-        if ('$ENTITYCLASS' != $entity) {
+    public function remove($entity)
+    {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }
 
-    public function refresh($entity) {
-        if ('$ENTITYCLASS' != $entity) {
+    public function refresh($entity)
+    {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }
 
-    public function detach($entity) {
-        if ('$ENTITYCLASS' != $entity) {
+    public function detach($entity)
+    {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }
 
-    public function merge($entity) {
-        if ('$ENTITYCLASS' != $entity) {
+    public function merge($entity)
+    {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }
 
-    public function flush($entity = null) {
-        if ('$ENTITYCLASS' != $entity) {
+    public function flush($entity = null)
+    {
+        if (!$entity instanceof EntityTest) {
             throw new \RuntimeException();
         }
     }
 
-    public function clear($entity = null) {
+    public function clear($entity = null)
+    {
         if (null != $entity) {
             throw new \RuntimeException();
         }
     }
 
-    public function contains($object) {
+    public function contains($object)
+    {
         return true;
     }
 }

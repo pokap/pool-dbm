@@ -13,7 +13,7 @@
 >
     <testsuites>
         <testsuite name="Pool-DBM Test Suite">
-            <directory>./tests/Pok</directory>
+            <directory>./tests/Pok/PoolDBM/Tests</directory>
         </testsuite>
     </testsuites>
 
