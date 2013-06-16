@@ -119,10 +119,11 @@ class GenerateMultiModelCommand extends Command
                 }
 
                 $arg = array(
-                    'comment'   => $method->getDocComment(),
-                    'name'      => $method->getName(),
-                    'type'      => in_array($matches[1], array('get','is','has','all')) ? 'getter' : 'setter',
-                    'arguments' => Reflector::parameters($method->getParameters())
+                    'comment'    => $method->getDocComment(),
+                    'name'       => $method->getName(),
+                    'type'       => in_array($matches[1], array('get','is','has','all')) ? 'getter' : 'setter',
+                    'arguments'  => Reflector::parameters($method->getParameters()),
+                    'parameters' => $method->getParameters()
                 );
 
                 $managers[$model->getManagerName()]['methods'][] = $arg;

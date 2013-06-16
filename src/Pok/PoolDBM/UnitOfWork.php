@@ -55,6 +55,8 @@ class UnitOfWork
 
     /**
      * @param object $model
+     *
+     * @throws \RuntimeException
      */
     public function persist($model)
     {
@@ -142,14 +144,20 @@ class UnitOfWork
     {
         if (null === $model) {
             foreach ($this->manager->getPool()->getIterator() as $manager) {
-                $manager->clear(null);
+                if (method_exists($manager, 'clear')) {
+                    $manager->clear(null);
+                }
             }
         } else {
             $class = $this->manager->getClassMetadata(get_class($model));
             $pool  = $this->manager->getPool();
 
             foreach ($class->getFieldManagerNames() as $managerName) {
-                $pool->getManager($managerName)->clear($model->{'get' . ucfirst($managerName)}());
+                $manager = $pool->getManager($managerName);
+
+                if (method_exists($manager, 'clear')) {
+                    $manager->clear($model->{'get' . ucfirst($managerName)}());
+                }
             }
         }
     }

@@ -52,7 +52,7 @@ class {{ model_name }}{% if extends is not empty %} extends {{ extends }}{% endi
 {% if 'getter' == method.type %}
         return $this->{{ name }}->{{ method.name }}({{ method.arguments|join(', ') }});
 {% else %}
-        $this->{{ name }}->{{ method.name }}({{ method.arguments|join(', ') }});
+        $this->{{ name }}->{{ method.name }}({% for param in parameters %}${{ param.name }}{% if not loop.last %}, {% endif %}{% endfor %});
 
         return $this;
 {% endif %}
