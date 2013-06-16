@@ -74,7 +74,7 @@ class BaseManager
      * Deletes a model.
      *
      * @param mixed $model Model to save
-     * @param bool  $sync   Synchronize directly with database
+     * @param bool  $sync  Synchronize directly with database
      *
      * @throws \RuntimeException
      */

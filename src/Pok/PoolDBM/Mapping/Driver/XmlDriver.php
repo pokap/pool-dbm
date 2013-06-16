@@ -5,7 +5,7 @@ namespace Pok\PoolDBM\Mapping\Driver;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\Persistence\Mapping\Driver\FileDriver;
 
-use Pok\PoolDBM\Mapping\ClassMetadataInfo;
+use Pok\PoolDBM\Mapping\ClassMetadata as ClassMetadataInfo;
 
 /**
  * XmlDriver.
@@ -30,7 +30,7 @@ class XmlDriver extends FileDriver
     public function loadMetadataForClass($className, ClassMetadata $class)
     {
         /* @var \Pok\PoolDBM\Mapping\ClassMetadata $class */
-        /* @var $xmlRoot SimpleXMLElement */
+        /* @var \SimpleXMLElement $xmlRoot */
         $xmlRoot = $this->getElement($className);
         if (!$xmlRoot) {
             return;
@@ -46,6 +46,38 @@ class XmlDriver extends FileDriver
 
         // mandatory, after register models
         $this->setModelReference($class, $xmlRoot->{'model-reference'});
+
+        // associations
+        foreach ($xmlRoot->{'relation-one'} as $reference) {
+            $this->addAssociation($class, $reference, false);
+        }
+        foreach ($xmlRoot->{'relation-many'} as $reference) {
+            $this->addAssociation($class, $reference, true);
+        }
+    }
+
+    /**
+     * @param ClassMetadataInfo $class
+     * @param \SimpleXMLElement $reference
+     * @param boolean           $isCollection
+     */
+    protected function addAssociation(ClassMetadataInfo $class, \SimpleXMLElement $reference, $isCollection)
+    {
+        $references = array();
+
+        foreach ($reference as $config) {
+            /** @var \SimpleXMLElement $config */
+            if ('field-reference' === $config->getName()) {
+                $references[(string) $config['manager']] = (string) $config['field'];
+            }
+        }
+
+        $class->addAssociation(
+            $isCollection,
+            (string) $reference['field'],
+            (string) $reference['target-model'],
+            $references
+        );
     }
 
     /**
@@ -57,6 +89,22 @@ class XmlDriver extends FileDriver
         $parameters = $reference->attributes();
 
         $class->setIdentifier((string) $parameters['manager'], (string) $parameters['field']);
+
+        foreach ($reference as $config) {
+            /** @var \SimpleXMLElement $config */
+            switch ($config->getName()) {
+                case 'reference':
+                    $class->addRefenceIdentifier(
+                        (string) $config['manager'],
+                        (isset($config['reference-field'])? (string) $config['reference-field']: (string) $parameters['field']),
+                        (string) $config['field']
+                    );
+                    break;
+                case 'id-generator':
+                    $class->setManagerReferenceGenerator((string) $config['target-manager']);
+                    break;
+            }
+        }
     }
 
     /**
@@ -78,26 +126,6 @@ class XmlDriver extends FileDriver
         }
 
         $class->addModel((string) $model['manager'], (string) $model['name'], $fields, (isset($model['repository-method'])? (string) $model['repository-method'] : null));
-    }
-
-    /**
-     * Validates a loaded XML file.
-     *
-     * @param \DOMDocument $dom A loaded XML file
-     *
-     * @throws \InvalidArgumentException When XML doesn't validate its XSD schema
-     */
-    protected function validate(\DOMDocument $dom)
-    {
-        $location = __DIR__.'/schema/multi-1.0.xsd';
-
-        $current = libxml_use_internal_errors(true);
-        libxml_clear_errors();
-
-        if (!$dom->schemaValidate($location)) {
-            throw new \InvalidArgumentException(implode("\n", $this->getXmlErrors($current)));
-        }
-        libxml_use_internal_errors($current);
     }
 
     /**

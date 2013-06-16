@@ -2,7 +2,7 @@
 
 namespace Document;
 
-class Test
+class User
 {
     private $id;
     private $profileContent;

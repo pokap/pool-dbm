@@ -7,7 +7,6 @@ use Doctrine\Common\Persistence\Mapping\ClassMetadata as ClassMetadataInterface;
 use Doctrine\Common\Persistence\Mapping\ReflectionService;
 
 use Pok\PoolDBM\Mapping\ClassMetadata;
-use Pok\PoolDBM\Mapping\MappingException;
 use Pok\PoolDBM\ModelManager;
 
 class ClassMetadataFactory extends AbstractClassMetadataFactory

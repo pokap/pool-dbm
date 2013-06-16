@@ -53,6 +53,21 @@ class YmlDriver extends FileDriver
     protected function setModelReference(ClassMetadata $class, array $reference)
     {
         $class->setIdentifier($reference['manager'], $reference['field']);
+
+        foreach ($reference['config'] as $name => $config) {
+            switch ($name) {
+                case 'reference':
+                    $class->addRefenceIdentifier(
+                        $config['manager'],
+                        (isset($config['referenceField'])? $config['referenceField']: $reference['field']),
+                        $config['field']
+                    );
+                    break;
+                case 'idGenerator':
+                    $class->setManagerReferenceGenerator($config['target-manager']);
+                    break;
+            }
+        }
     }
 
     /**

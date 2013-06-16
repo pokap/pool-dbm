@@ -12,7 +12,7 @@ class UnitOfWork
     private $manager;
 
     /**
-     * @var ModelPersister[] 
+     * @var ModelPersister[]
      */
     private $persisters;
 
@@ -38,6 +38,10 @@ class UnitOfWork
                 $manager->flush();
             }
         } else {
+            if (!is_array($models)) {
+                $models = array($models);
+            }
+
             foreach ((array) $models as $model) {
                 $class = $this->manager->getClassMetadata(get_class($model));
                 $pool  = $this->manager->getPool();
@@ -51,14 +55,31 @@ class UnitOfWork
 
     /**
      * @param object $model
+     *
+     * @throws \RuntimeException
      */
     public function persist($model)
     {
-        $class = $this->manager->getClassMetadata(get_class($model));
-        $pool  = $this->manager->getPool();
+        $class    = $this->manager->getClassMetadata(get_class($model));
+        $managers = $class->getFieldManagerNames();
+        $pool     = $this->manager->getPool();
 
-        foreach ($class->getFieldManagerNames() as $managerName) {
-            $pool->getManager($managerName)->persist($model->{'get' . ucfirst($managerName)}());
+        $managerName = $class->getManagerReferenceGenerator();
+        $referenceModel = $model->{'get' . ucfirst($managerName)}();
+
+        $pool->getManager($managerName)->persist($referenceModel);
+
+        unset($managers[$managerName]);
+
+        foreach ($managers as $managerName) {
+            $managerModel = $model->{'get' . ucfirst($managerName)}();
+            if (!is_object($managerModel)) {
+                throw new \RuntimeException(sprintf('Getter manager "%s" must be returns object, "%s" given by model "%s".', $managerName, get_class($model), gettype($managerModel)));
+            }
+
+            $managerModel->setId($referenceModel->getId());
+
+            $pool->getManager($managerName)->persist($managerModel);
         }
     }
 
@@ -123,14 +144,20 @@ class UnitOfWork
     {
         if (null === $model) {
             foreach ($this->manager->getPool()->getIterator() as $manager) {
-                $manager->clear(null);
+                if (method_exists($manager, 'clear')) {
+                    $manager->clear(null);
+                }
             }
         } else {
             $class = $this->manager->getClassMetadata(get_class($model));
             $pool  = $this->manager->getPool();
 
             foreach ($class->getFieldManagerNames() as $managerName) {
-                $pool->getManager($managerName)->clear($model->{'get' . ucfirst($managerName)}());
+                $manager = $pool->getManager($managerName);
+
+                if (method_exists($manager, 'clear')) {
+                    $manager->clear($model->{'get' . ucfirst($managerName)}());
+                }
             }
         }
     }
@@ -140,7 +167,7 @@ class UnitOfWork
      *
      * @param string $modelName
      *
-     * @return DocumentPersister
+     * @return ModelPersister
      */
     public function getModelPersister($modelName)
     {
@@ -166,17 +193,24 @@ class UnitOfWork
 
     /**
      * @param string $className
-     * @param array $data
+     * @param array  $data
      *
      * @return object The model instance.
+     *
+     * @throws \RuntimeException
      */
     public function createModel($className, $data)
     {
-        $class = $this->manager->getClassMetadata($className);
-        $model = $class->newInstance();
+        $model = new $className;
 
         foreach ($data as $managerName => $value) {
-            $model->{'set' . ucfirst($managerName)}($value);
+            $method_name = 'set' . ucfirst($managerName);
+
+            if (!method_exists($model, $method_name)) {
+                throw new \RuntimeException(sprintf('Method "%s" does not exist in "%s" class.', $method_name, $className));
+            }
+
+            $model->$method_name($value);
         }
 
         return $model;
