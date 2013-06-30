@@ -94,7 +94,7 @@ class XmlDriver extends FileDriver
             /** @var \SimpleXMLElement $config */
             switch ($config->getName()) {
                 case 'reference':
-                    $class->addRefenceIdentifier(
+                    $class->addIdentifierReference(
                         (string) $config['manager'],
                         (isset($config['reference-field'])? (string) $config['reference-field']: (string) $parameters['field']),
                         (string) $config['field']

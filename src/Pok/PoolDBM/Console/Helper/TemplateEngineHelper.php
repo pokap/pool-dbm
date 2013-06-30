@@ -4,13 +4,12 @@ namespace Pok\PoolDBM\Console\Helper;
 
 use Symfony\Component\Console\Helper\Helper;
 
-use Twig_Loader_Filesystem;
-use Twig_Environment;
+use Pok\PoolDBM\Twig\TwigExtension;
 
 class TemplateEngineHelper extends Helper implements TemplateHelperInterface
 {
     /**
-     * @var Twig_Environment
+     * @var \Twig_Environment
      */
     protected $twig;
 
@@ -22,7 +21,8 @@ class TemplateEngineHelper extends Helper implements TemplateHelperInterface
      */
     public function __construct($paths, array $options = array())
     {
-        $this->twig = new Twig_Environment(new Twig_Loader_Filesystem($paths), $options);
+        $this->twig = new \Twig_Environment(new \Twig_Loader_Filesystem($paths), $options);
+        $this->twig->addExtension(new TwigExtension());
     }
 
     /**

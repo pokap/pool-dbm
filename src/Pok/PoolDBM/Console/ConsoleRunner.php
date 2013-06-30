@@ -31,12 +31,13 @@ class ConsoleRunner
     public static function createHelperSet(ModelManager $modelManager, TemplateHelperInterface $template = null, $cache_dir = null)
     {
         $resources_dir = __DIR__ . '/../Resources';
-        $cache_dir     = $cache_dir?: sys_get_temp_dir() . '/php/pool-dbm/cache';
+        $cache_dir     = $cache_dir?: sys_get_temp_dir() . '/php/cache';
+        $template      = $template?: new TemplateEngineHelper($resources_dir, array('cache' => $cache_dir . '/pool-dbm'));
 
         return new HelperSet(array(
             'dialog'       => new DialogHelper(),
             'modelManager' => new ModelManagerHelper($modelManager),
-            'template'     => ($template?: new TemplateEngineHelper($resources_dir, array('cache' => $cache_dir)))
+            'template'     => ($template?: new TemplateEngineHelper($resources_dir, array('cache' => $cache_dir . '/pool-dbm')))
         ));
     }
 
