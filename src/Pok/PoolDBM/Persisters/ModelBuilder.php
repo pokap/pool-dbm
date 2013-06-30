@@ -176,7 +176,7 @@ class ModelBuilder
             trigger_error(sprintf('findOneBy in ModelPersister::loadAll context is depreciate. Define repository-method for "%s" manager model, see mapping for "%s".', $manager, $class->getName()), E_USER_DEPRECATED);
 
             $repository = $pool->getManager($manager)->getRepository($class->getName());
-            $field      = $class->getReferenceIdentifier($manager)->field;
+            $field      = $class->getIdentifierReference($manager)->field;
 
             foreach ($ids as $id) {
                 $object = $repository->findOneBy(array($field => $id));

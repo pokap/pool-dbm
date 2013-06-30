@@ -40,19 +40,32 @@ class {{ model_name }}{% if extends is not empty %} extends {{ extends }}{% endi
 {% endfor %}
 {% endif %}
     }
+{% for name, refl in managers %}
 
+    /**
+     * Returns {{ name }}.
+     *
+     * @return {{ refl.namespace }}
+     */
+    public function get{{ name|ucfirst }}()
+    {
+        return $this->{{ name }};
+    }
+{% endfor %}
 {# setter/getter #}
 {% for name, refl in managers %}
 {% for method in refl.methods %}
+
 {% if method.comment is not empty %}
-    {{ method.comment }}
+    {% if 'getter' == method.type %}{{ method.comment }}{% else %}{{ method.comment|replace({'*/': "*\n     * @return " ~ model_name ~ "\n     */"}) }}{% endif %}
+
 {% endif %}
     public function {{ method.name }}({{ method.arguments|join(', ') }})
     {
 {% if 'getter' == method.type %}
         return $this->{{ name }}->{{ method.name }}({{ method.arguments|join(', ') }});
 {% else %}
-        $this->{{ name }}->{{ method.name }}({% for param in parameters %}${{ param.name }}{% if not loop.last %}, {% endif %}{% endfor %});
+        $this->{{ name }}->{{ method.name }}({% for param in method.parameters %}${{ param.name }}{% if not loop.last %}, {% endif %}{% endfor %});
 
         return $this;
 {% endif %}
@@ -60,12 +73,13 @@ class {{ model_name }}{% if extends is not empty %} extends {{ extends }}{% endi
 {% endfor %}
 {% endfor %}
 {% for name, refl in associations.one %}
+
     /**
      * Returns collection of {{ name }}.
      *
      * @return \{{ refl.className }}
      */
-    public function get{{ name|capitalize }}()
+    public function get{{ name|ucfirst }}()
     {
         return $this->{{ name }};
     }
@@ -77,7 +91,7 @@ class {{ model_name }}{% if extends is not empty %} extends {{ extends }}{% endi
      *
      * @return {{ model_name }}
      */
-    public function set{{ name|capitalize }}(\{{ refl.className }} ${{ name }})
+    public function set{{ name|ucfirst }}(\{{ refl.className }} ${{ name }})
     {
         $this->{{ name }} = ${{ name }};
 
@@ -85,12 +99,13 @@ class {{ model_name }}{% if extends is not empty %} extends {{ extends }}{% endi
     }
 {% endfor %}
 {% for name, refl in associations.many %}
+
     /**
      * Returns collection of {{ name }}.
      *
-     * @return \{{ refl.className }}
+     * @return \{{ refl.className }}[]
      */
-    public function get{{ name|capitalize }}()
+    public function get{{ name|ucfirst }}()
     {
         return $this->{{ name }};
     }
