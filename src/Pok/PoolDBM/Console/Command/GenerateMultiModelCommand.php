@@ -121,7 +121,7 @@ class GenerateMultiModelCommand extends Command
                 $arg = array(
                     'comment'    => $method->getDocComment(),
                     'name'       => $method->getName(),
-                    'type'       => in_array($matches[1], array('get','is','has','all')) ? 'getter' : 'setter',
+                    'type'       => in_array($matches[1], array('get','is','has','all','check')) ? 'getter' : 'setter',
                     'arguments'  => Reflector::parameters($method->getParameters()),
                     'parameters' => $method->getParameters()
                 );
@@ -147,10 +147,10 @@ class GenerateMultiModelCommand extends Command
         $occ = strrpos($metadata->getName(), '\\');
 
         return array(
-            'model_namespace' => substr($metadata->getName(), 0, $occ),
-            'model_name'      => substr($metadata->getName(), $occ + 1),
-            'managers'        => $managers,
-            'associations'    => $associations
+            'model_namespace'   => substr($metadata->getName(), 0, $occ),
+            'model_name'        => substr($metadata->getName(), $occ + 1),
+            'managers'          => $managers,
+            'associations'      => $associations
         );
     }
 
@@ -193,7 +193,7 @@ class Bag
      * @param array $one
      * @param array $many
      */
-    public function __constructor(array $one = array(), array $many = array())
+    public function __construct(array $one = array(), array $many = array())
     {
         $this->one  = $one;
         $this->many = $many;
@@ -206,6 +206,6 @@ class Bag
      */
     public function getAll()
     {
-        return $this->one + $this->many;
+        return array_merge($this->one, $this->many);
     }
 }

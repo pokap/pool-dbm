@@ -2,15 +2,15 @@
 
 namespace Pok\PoolDBM\Manager;
 
-use Pok\PoolDBM\ModelManager;
+use Doctrine\Common\Persistence\ObjectManager;
 
 /**
- * Base manager for doctrine multi-model
+ * Base manager for doctrine
  */
 class BaseManager
 {
     /**
-     * @var ModelManager
+     * @var ObjectManager
      */
     protected $manager;
 
@@ -22,10 +22,10 @@ class BaseManager
     /**
      * Constructor
      *
-     * @param string       $class   Name of model class
-     * @param ModelManager $manager Model manager
+     * @param string        $class   Name of model class
+     * @param ObjectManager $manager Object manager
      */
-    public function __construct($class, ModelManager $manager)
+    public function __construct($class, ObjectManager $manager)
     {
         $this->class   = $class;
         $this->manager = $manager;

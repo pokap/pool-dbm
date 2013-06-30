@@ -118,4 +118,12 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
     protected function initializeReflection(ClassMetadataInterface $class, ReflectionService $reflService)
     {
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function isEntity(ClassMetadataInterface $class)
+    {
+        return false;
+    }
 }
