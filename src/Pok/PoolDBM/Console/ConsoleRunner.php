@@ -28,17 +28,17 @@ class ConsoleRunner
      *
      * @return HelperSet
      */
-    public static function createHelperSet(ModelManager $modelManager, TemplateHelperInterface $template = null, $cache_dir = null)
+    public static function createHelpers(ModelManager $modelManager, TemplateHelperInterface $template = null, $cache_dir = null)
     {
         $resources_dir = __DIR__ . '/../Resources';
         $cache_dir     = $cache_dir?: sys_get_temp_dir() . '/php/cache';
         $template      = $template?: new TemplateEngineHelper($resources_dir, array('cache' => $cache_dir . '/pool-dbm'));
 
-        return new HelperSet(array(
+        return array(
             'dialog'       => new DialogHelper(),
             'modelManager' => new ModelManagerHelper($modelManager),
             'template'     => ($template?: new TemplateEngineHelper($resources_dir, array('cache' => $cache_dir . '/pool-dbm')))
-        ));
+        );
     }
 
     /**
@@ -53,7 +53,7 @@ class ConsoleRunner
     {
         $cli = new Application('PoolDBM Command Line Interface', Version::VERSION);
         $cli->setCatchExceptions(true);
-        $cli->setHelperSet($helperSet);
+        $cli->setHelperSet(new HelperSet($helperSet));
         self::addDefaultCommands($cli);
         $cli->addCommands($commands);
         $cli->run();
