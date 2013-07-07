@@ -2,8 +2,8 @@
 
 namespace Pok\PoolDBM\Tests\Console\Command;
 
-use Pok\PoolDBM\Tests\Mocks\MetadataDriverMock;
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Helper\HelperSet;
 use Symfony\Component\Console\Tester\CommandTester;
 
 use Pok\PoolDBM\Console\ConsoleRunner;
@@ -11,6 +11,7 @@ use Pok\PoolDBM\Console\Command\GenerateMultiModelCommand;
 use Pok\PoolDBM\Manager\Pool;
 use Pok\PoolDBM\ModelManager;
 
+use Pok\PoolDBM\Tests\Mocks\MetadataDriverMock;
 use Pok\PoolDBM\Tests\Mocks\ObjectManagerMock;
 
 class GenerateMultiModelCommandTest extends \PHPUnit_Framework_TestCase
@@ -31,7 +32,7 @@ class GenerateMultiModelCommandTest extends \PHPUnit_Framework_TestCase
         $manager->setMetadataDriverImpl(new MetadataDriverMock(array(__NAMESPACE__ . '\\ModelTest')));
 
         $application = new Application();
-        $application->setHelperSet(ConsoleRunner::createHelperSet($manager));
+        $application->setHelperSet(new HelperSet(ConsoleRunner::createHelpers($manager)));
         $application->add(new GenerateMultiModelCommand());
 
         $command = $application->find('pok:pool-dbm:generate:model');
