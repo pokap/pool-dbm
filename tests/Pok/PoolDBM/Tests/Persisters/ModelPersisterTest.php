@@ -103,7 +103,7 @@ class ModelPersisterTest extends \PHPUnit_Framework_TestCase
         $metadata->addModel('entity', $this->getFixtures('Test2\\Entity\\Group'), array(), 'findByIds');
         $metadata->addModel('document', $this->getFixtures('Test2\\Document\\Group'), array(), 'findByIds');
         $metadata->setIdentifier('entity', 'id');
-        $metadata->addRefenceIdentifier('document', 'documentId', 'id');
+        $metadata->addIdentifierReference('document', 'documentId', 'id');
         $metadata->addAssociation(true, 'users', $this->getFixtures('Test2\\Model\\User'));
 
         $metadatas[$this->getFixtures('Test2\\Model\\Group')] = $metadata;

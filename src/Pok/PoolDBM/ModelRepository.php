@@ -133,7 +133,7 @@ class ModelRepository
         $data = array();
         $ids = array();
         foreach ($objects as $object) {
-            $id = $this->class->getIdentifierValues($object);
+            $id = $this->class->getIdentifierValue($object);
 
             $data[$id][$this->class->getManagerIdentifier()] = $object;
             $ids[] = $id;
@@ -143,7 +143,7 @@ class ModelRepository
 
         foreach ($models as $manager => $model) {
             foreach ($pool->getManager($manager)->getRepository($model)->findBy(array($this->class->getFieldIdentifier() => $ids)) as $object) {
-                $id = $this->class->getIdentifierValues($object);
+                $id = $this->class->getIdentifierValue($object);
 
                 $data[$id][$manager] = $object;
             }
