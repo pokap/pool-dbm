@@ -162,12 +162,16 @@ class ModelBuilder
      */
     protected function relayLoadModels(ClassMetadata $class, $manager, array $ids)
     {
+        $classOfManagerName = $class->getFieldMapping($manager);
+
         $data       = array();
         $pool       = $this->manager->getPool();
-        $methodFind = $class->getFieldMapping($manager)->getRepositoryMethod();
+        $methodFind = $classOfManagerName->getRepositoryMethod();
 
-        if ($methodFind) {
-            foreach ($pool->getManager($manager)->getRepository($class->getName())->$methodFind($ids) as $object) {
+        $repository = $pool->getManager($manager)->getRepository($classOfManagerName->getName());
+
+        if ($methodFind && method_exists($repository, $methodFind)) {
+            foreach ($pool->getManager($manager)->getRepository($classOfManagerName->getName())->$methodFind($ids) as $object) {
                 $id = $class->getIdentifierValue($object);
 
                 $data[$id] = $object;
@@ -175,7 +179,7 @@ class ModelBuilder
         } else {
             trigger_error(sprintf('findOneBy in ModelPersister::loadAll context is depreciate. Define repository-method for "%s" manager model, see mapping for "%s".', $manager, $class->getName()), E_USER_DEPRECATED);
 
-            $repository = $pool->getManager($manager)->getRepository($class->getName());
+            $repository = $pool->getManager($manager)->getRepository($classOfManagerName->getName());
             $field      = $class->getIdentifierReference($manager)->field;
 
             foreach ($ids as $id) {
