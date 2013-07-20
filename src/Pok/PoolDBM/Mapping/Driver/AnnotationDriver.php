@@ -9,7 +9,6 @@ use Doctrine\Common\Persistence\Mapping\Driver\AnnotationDriver as AbstractAnnot
 use Doctrine\Common\Annotations\Reader;
 
 use Pok\PoolDBM\Mapping\Annotations as ODM;
-use Pok\PoolDBM\Mapping\ClassMetadataInfo;
 
 /**
  * AnnotationDriver.
@@ -33,7 +32,7 @@ class AnnotationDriver extends AbstractAnnotationDriver
      */
     public function loadMetadataForClass($className, ClassMetadata $class)
     {
-        /** @var $class ClassMetadataInfo */
+        /** @var \Pok\PoolDBM\Mapping\ClassMetadataInfo $class */
         $reflClass = $class->getReflectionClass();
 
         foreach ($this->reader->getClassAnnotations($reflClass) as $annot) {

@@ -204,13 +204,25 @@ class UnitOfWork
         $model = new $className;
 
         foreach ($data as $managerName => $value) {
-            $method_name = 'set' . ucfirst($managerName);
+            $is_collection = is_array($value);
+
+            if ($is_collection) {
+                $method_name = 'get' . ucfirst($managerName);
+            } else {
+                $method_name = 'set' . ucfirst($managerName);
+            }
 
             if (!method_exists($model, $method_name)) {
                 throw new \RuntimeException(sprintf('Method "%s" does not exist in "%s" class.', $method_name, $className));
             }
 
-            $model->$method_name($value);
+            if ($is_collection) {
+                foreach ($value as $element) {
+                    $model->$method_name()->add($element);
+                }
+            } else {
+                $model->$method_name($value);
+            }
         }
 
         return $model;
