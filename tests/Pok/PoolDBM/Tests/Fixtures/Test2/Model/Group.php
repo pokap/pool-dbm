@@ -48,10 +48,8 @@ class Group
         $this->document->id = $id;
     }
 
-    public function setUsers(array $users)
+    public function getUsers()
     {
-        foreach ($users as $user) {
-            $this->users->add($user);
-        }
+        return $this->users;
     }
 }
