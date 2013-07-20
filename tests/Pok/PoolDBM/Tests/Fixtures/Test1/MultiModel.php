@@ -53,10 +53,8 @@ class MultiModel
         $this->parent = $model;
     }
 
-    public function setChildrens(array $childrens)
+    public function getChildrens()
     {
-        foreach ($childrens as $children) {
-            $this->childrens->add($children);
-        }
+        return $this->childrens;
     }
 }
