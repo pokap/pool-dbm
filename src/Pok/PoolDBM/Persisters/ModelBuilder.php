@@ -172,6 +172,10 @@ class ModelBuilder
 
         if ($methodFind && method_exists($repository, $methodFind)) {
             foreach ($pool->getManager($manager)->getRepository($classOfManagerName->getName())->$methodFind($ids) as $object) {
+                if (!$object) {
+                    continue;
+                }
+
                 $id = $class->getIdentifierValue($object);
 
                 $data[$id] = $object;
@@ -184,6 +188,10 @@ class ModelBuilder
 
             foreach ($ids as $id) {
                 $object = $repository->findOneBy(array($field => $id));
+
+                if (!$object) {
+                    continue;
+                }
 
                 $id = $class->getIdentifierValue($object, $manager);
 
