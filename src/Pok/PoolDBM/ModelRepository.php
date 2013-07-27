@@ -84,12 +84,25 @@ class ModelRepository
      * @param mixed        $qb      Query or QueryBuilder object
      * @param integer|null $count   Number of items to retrieve (optional)
      * @param boolean      $hydrate Multi hydratation model (optional)
+     * @param boolean      $except  Keep object and ignore field adding in select query (optional)
      *
      * @return mixed
      */
-    protected function getQueryBuilderResult($qb, $count = null, $hydrate = true)
+    protected function getQueryBuilderResult($qb, $count = null, $hydrate = true, $except = false)
     {
         $result = $qb->execute();
+
+        if ($except) {
+            foreach ($result as $key => $value) {
+                foreach ($value as $field => $data) {
+                    if (is_int($field)) {
+                        $result[$key] = $data;
+
+                        continue 2;
+                    }
+                }
+            }
+        }
 
         if ($hydrate) {
             $result = $this->hydrate((array) $result);
@@ -121,7 +134,7 @@ class ModelRepository
      *
      * @return array
      */
-    private function hydrate(array $objects)
+    protected function hydrate(array $objects)
     {
         $pool = $this->manager->getPool();
 
@@ -143,6 +156,10 @@ class ModelRepository
 
         foreach ($models as $manager => $model) {
             foreach ($pool->getManager($manager)->getRepository($model)->findBy(array($this->class->getFieldIdentifier() => $ids)) as $object) {
+                if (!$object) {
+                    continue;
+                }
+
                 $id = $this->class->getIdentifierValue($object);
 
                 $data[$id][$manager] = $object;
