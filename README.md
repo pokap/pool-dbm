@@ -4,7 +4,8 @@ Pool-DBM (Pool Database Manager)
 **Requires** at least *PHP 5.3.3* with Doctrine 2 library. Compatible PHP 5.4 too.
 
 [![Build Status](https://travis-ci.org/pokap/pool-dbm.png?branch=master)](https://travis-ci.org/pokap/pool-dbm)
-
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/dc654b6f-aaca-4b69-aeae-5774d74e3a36/mini.png)](https://insight.sensiolabs.com/projects/dc654b6f-aaca-4b69-aeae-5774d74e3a36)
+[![Latest Stable Version](https://poser.pugx.org/pokap/pool-dbm/v/stable.png)](https://packagist.org/packages/pokap/pool-dbm)
 
 PoolDBM package support doctrine common. You should know that this is an additional layer. But for to limit
 potential performance lowering, the mapping does not use reflection.
