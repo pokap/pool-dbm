@@ -155,14 +155,38 @@ class ModelRepository
         unset($models[$this->class->getManagerIdentifier()]);
 
         foreach ($models as $manager => $model) {
-            foreach ($pool->getManager($manager)->getRepository($model)->findBy(array($this->class->getFieldIdentifier() => $ids)) as $object) {
-                if (!$object) {
-                    continue;
+            $classOfManagerName = $this->class->getFieldMapping($manager);
+
+            $methodFind = $classOfManagerName->getRepositoryMethod();
+            $repository = $pool->getManager($manager)->getRepository($classOfManagerName->getName());
+
+            if ($methodFind && method_exists($repository, $methodFind)) {
+                foreach ($pool->getManager($manager)->getRepository($classOfManagerName->getName())->$methodFind($ids) as $object) {
+                    if (!$object) {
+                        continue;
+                    }
+
+                    $id = $this->class->getIdentifierValue($object);
+
+                    $data[$id][$manager] = $object;
                 }
+            } else {
+                trigger_error(sprintf('findOneBy in ModelPersister::loadAll context is depreciate. Define repository-method for "%s" manager model, see mapping for "%s".', $manager, $this->class->getName()), E_USER_DEPRECATED);
 
-                $id = $this->class->getIdentifierValue($object);
+                $repository = $pool->getManager($manager)->getRepository($classOfManagerName->getName());
+                $field      = $this->class->getIdentifierReference($manager)->field;
 
-                $data[$id][$manager] = $object;
+                foreach ($ids as $id) {
+                    $object = $repository->findOneBy(array($field => $id));
+
+                    if (!$object) {
+                        continue;
+                    }
+
+                    $id = $this->class->getIdentifierValue($object);
+
+                    $data[$id][$manager] = $object;
+                }
             }
         }
 
