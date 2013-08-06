@@ -36,7 +36,7 @@ class CollectionCenterData
 
     /**
      * @param string $managerName
-     * @param object $data
+     * @param mixed  $data
      */
     public function addData($managerName, $data)
     {

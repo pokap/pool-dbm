@@ -49,7 +49,7 @@ class Transaction
     /**
      * Saves a model.
      *
-     * @param object $model
+     * @param mixed $model
      */
     public function persist($model)
     {
@@ -86,7 +86,7 @@ class Transaction
     /**
      * Deletes a model.
      *
-     * @param object $model
+     * @param mixed $model
      */
     public function remove($model)
     {
@@ -140,7 +140,7 @@ class Transaction
      * Saves an model.
      *
      * @param string     $managerName
-     * @param object     $model
+     * @param mixed      $model
      * @param null|mixed $id
      */
     protected function doPersist($managerName, $model, $id = null)
@@ -171,7 +171,7 @@ class Transaction
      *
      * @param integer    $action
      * @param string     $managerName
-     * @param object     $model
+     * @param mixed      $model
      * @param null|mixed $id
      *
      * @throws \InvalidArgumentException
@@ -185,7 +185,7 @@ class Transaction
         $this->queueActions[]      = $action;
         $this->queueManagerNames[] = $managerName;
         $this->queueModels[]       = $model;
-        $this->queueIds[]           = $id;
+        $this->queueIds[]          = $id;
     }
 
     /**

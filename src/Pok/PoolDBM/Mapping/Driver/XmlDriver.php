@@ -72,10 +72,17 @@ class XmlDriver extends FileDriver
             }
         }
 
+        $compatible = array();
+        if (isset($reference['compatible'])) {
+            $compatible = explode(',', (string) $reference['compatible']);
+            $compatible = array_map('trim', $compatible);
+        }
+
         $class->addAssociation(
             $isCollection,
             (string) $reference['field'],
             (string) $reference['target-model'],
+            $compatible,
             $references
         );
     }
@@ -118,6 +125,7 @@ class XmlDriver extends FileDriver
         $fields = array();
 
         foreach ($model as $field) {
+            /** @var \SimpleXMLElement $field */
             if ('field' === $field->getName()) {
                 $fields[] = (string) $field['name'];
             } else {
