@@ -2,6 +2,13 @@
 
 namespace Pok\PoolDBM;
 
+use Pok\PoolDBM\Persisters\ModelBuilder;
+
+/**
+ * Model repository retrieve repository per manager type, and integrates tools for hydrate result.
+ *
+ * @author Florent Denis <dflorent.pokap@gmail.com>
+ */
 class ModelRepository
 {
     /**
@@ -20,6 +27,11 @@ class ModelRepository
     protected $class;
 
     /**
+     * @var ModelBuilder
+     */
+    protected $modelBuilder;
+
+    /**
      * Construtor.
      *
      * @param ModelManager          $manager
@@ -31,6 +43,8 @@ class ModelRepository
         $this->manager = $manager;
         $this->uow     = $uow;
         $this->class   = $class;
+
+        $this->modelBuilder = new ModelBuilder($manager, $uow, $class);
     }
 
     public function createQueryBuilder($alias)
@@ -128,7 +142,7 @@ class ModelRepository
     }
 
     /**
-     * Multi hydratation model.
+     * Multiple hydration model.
      *
      * @param array $objects
      *
@@ -136,8 +150,6 @@ class ModelRepository
      */
     protected function hydrate(array $objects)
     {
-        $pool = $this->manager->getPool();
-
         $models = array();
         foreach ($this->class->getFieldManagerNames() as $managerName) {
             $models[$managerName] = $this->class->getFieldMapping($managerName)->getName();
@@ -155,59 +167,16 @@ class ModelRepository
         unset($models[$this->class->getManagerIdentifier()]);
 
         foreach ($models as $manager => $model) {
-            $classOfManagerName = $this->class->getFieldMapping($manager);
-
-            $methodFind = $classOfManagerName->getRepositoryMethod();
-            $repository = $pool->getManager($manager)->getRepository($classOfManagerName->getName());
-
-            if ($methodFind && method_exists($repository, $methodFind)) {
-                foreach ($pool->getManager($manager)->getRepository($classOfManagerName->getName())->$methodFind($ids) as $object) {
-                    if (!$object) {
-                        continue;
-                    }
-
-                    $id = $this->class->getIdentifierValue($object);
-
-                    $data[$id][$manager] = $object;
-                }
-            } else {
-                trigger_error(sprintf('findOneBy in ModelPersister::loadAll context is depreciate. Define repository-method for "%s" manager model, see mapping for "%s".', $manager, $this->class->getName()), E_USER_DEPRECATED);
-
-                $repository = $pool->getManager($manager)->getRepository($classOfManagerName->getName());
-                $field      = $this->class->getIdentifierReference($manager)->field;
-
-                foreach ($ids as $id) {
-                    $object = $repository->findOneBy(array($field => $id));
-
-                    if (!$object) {
-                        continue;
-                    }
-
-                    $id = $this->class->getIdentifierValue($object);
-
-                    $data[$id][$manager] = $object;
-                }
-            }
+            $this->modelBuilder->loaderModels($this->class, $manager, $ids, function ($id, $object) use (&$data, $manager) {
+                $data[$id][$manager] = $object;
+            });
         }
 
         $result = array();
         foreach ($ids as $id) {
-            $result[] = $this->createModel($data[$id]);
+            $result[] = $this->modelBuilder->createModel($this->class->getName(), $data[$id]);
         }
 
         return $result;
-    }
-
-    /**
-     * @param  array  $data
-     * @return object
-     */
-    private function createModel(array $data)
-    {
-        if (empty($data)) {
-            return null;
-        }
-
-        return $this->uow->createModel($this->class->getName(), $data);
     }
 }

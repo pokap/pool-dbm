@@ -7,7 +7,7 @@ class Version
     /**
      * Current Bundle Version
      */
-    const VERSION = '1.0.0-ALPHA2';
+    const VERSION = '1.0.0-ALPHA3';
 
     /**
      * @param string $version

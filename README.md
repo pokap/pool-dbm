@@ -51,5 +51,8 @@ Mapping:
     <relation-one field="address" target-model="MultiModel\Address">
         <field-reference manager="document" field="addressUser" />
     </relation-one>
+
+    <!-- compatible can to be empty for all managers, or defines several managers -->
+    <relation-many field="posts" target-model="MultiModel\Post" compatible="entity,document" />
 </multi-model>
 ```

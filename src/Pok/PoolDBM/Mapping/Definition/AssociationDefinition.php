@@ -12,6 +12,7 @@ class AssociationDefinition
     protected $field;
     protected $targetMultiModel;
     protected $isCollection;
+    protected $compatible;
     protected $references;
 
     /**
@@ -44,6 +45,29 @@ class AssociationDefinition
     public function getTargetMultiModel()
     {
         return $this->targetMultiModel;
+    }
+
+    /**
+     * @param array $compatible
+     *
+     * @return AssociationDefinition
+     */
+    public function setCompatible(array $compatible)
+    {
+        $this->compatible = $compatible;
+
+        return $this;
+    }
+
+    /**
+     * Returns list of manager compatible.
+     * If empty, the compatibility is complete.
+     *
+     * @return array|null
+     */
+    public function getCompatible()
+    {
+        return $this->compatible;
     }
 
     /**

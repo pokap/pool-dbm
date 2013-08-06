@@ -32,9 +32,9 @@ class ArrayCollection extends CommonArrayCollection
      *    'document' => 'getUser'
      *  ));
      *
-     * @param object $model
-     * @param array  $fields
-     * @param array  $elements (optional)
+     * @param mixed $model
+     * @param array $fields
+     * @param array $elements (optional)
      */
     public function __construct($model, array $fields, array $elements = array())
     {
@@ -107,7 +107,7 @@ class ArrayCollection extends CommonArrayCollection
     }
 
     /**
-     * @param object $model
+     * @param mixed  $model
      * @param string $managerName
      * @param string $method
      *

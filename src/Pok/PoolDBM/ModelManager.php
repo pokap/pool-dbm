@@ -136,7 +136,7 @@ class ModelManager implements ObjectManager
     }
 
     /**
-     * @param object $model The document instance to remove.
+     * @param mixed $model The document instance to remove.
      *
      * @throws \RuntimeException When manager is closed
      */
@@ -147,7 +147,7 @@ class ModelManager implements ObjectManager
     }
 
     /**
-     * @param object $model The document instance to remove.
+     * @param mixed $model The document instance to remove.
      *
      * @throws \RuntimeException When manager is closed
      */
@@ -158,7 +158,7 @@ class ModelManager implements ObjectManager
     }
 
     /**
-     * @param object $model The document to refresh.
+     * @param mixed $model The document to refresh.
      *
      * @throws \RuntimeException When manager is closed
      */
@@ -169,7 +169,7 @@ class ModelManager implements ObjectManager
     }
 
     /**
-     * @param object $model The document to detach.
+     * @param mixed $model The document to detach.
      */
     public function detach($model)
     {
@@ -177,7 +177,7 @@ class ModelManager implements ObjectManager
     }
 
     /**
-     * @param object $model The detached document to merge into the persistence context.
+     * @param mixed $model The detached document to merge into the persistence context.
      *
      * @return object The managed copy of the document
      *
@@ -256,7 +256,7 @@ class ModelManager implements ObjectManager
     /**
      * Determines whether a model instance is managed in this ModelManager.
      *
-     * @param object $model
+     * @param mixed $model
      *
      * @return boolean TRUE if this ModelManager currently manages the given document, FALSE otherwise.
      */

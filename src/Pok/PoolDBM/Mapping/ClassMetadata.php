@@ -286,13 +286,15 @@ class ClassMetadata implements ClassMetadataInterface
      * @param boolean $isCollection
      * @param string  $field
      * @param string  $targetMultiModel
+     * @param array   $compatible       (optional)
      * @param array   $references       (optional)
      *
      * @return AssociationDefinition
      */
-    public function addAssociation($isCollection, $field, $targetMultiModel, array $references = array())
+    public function addAssociation($isCollection, $field, $targetMultiModel, array $compatible = array(), array $references = array())
     {
         $mapping = new AssociationDefinition($field, $targetMultiModel, $isCollection);
+        $mapping->setCompatible($compatible);
         $mapping->setReferences($references);
 
         $this->associationMappings[$field] = $mapping;
@@ -301,7 +303,7 @@ class ClassMetadata implements ClassMetadataInterface
     }
 
     /**
-     * @param object $model
+     * @param mixed $model
      *
      * @return mixed
      */
@@ -311,7 +313,7 @@ class ClassMetadata implements ClassMetadataInterface
     }
 
     /**
-     * @param object $model
+     * @param mixed  $model
      * @param string $manager (optional)
      *
      * @return mixed
