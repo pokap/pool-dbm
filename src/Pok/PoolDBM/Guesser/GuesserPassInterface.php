@@ -23,7 +23,7 @@ interface GuesserPassInterface
      * Returns if manager can add to priority list managers.
      *
      * @param string $name
-     * @param object $manager
+     * @param mixed  $manager
      *
      * @return boolean
      */

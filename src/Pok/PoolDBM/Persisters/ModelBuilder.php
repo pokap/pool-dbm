@@ -42,10 +42,10 @@ class ModelBuilder
     }
 
     /**
-     * @param object $referenceModel
+     * @param mixed  $referenceModel
      * @param string $originManager
      *
-     * @return object
+     * @return mixed
      */
     public function build($referenceModel, $originManager)
     {
@@ -65,7 +65,7 @@ class ModelBuilder
      * @param array  $referenceModels
      * @param string $originManager
      *
-     * @return object[]
+     * @return array
      */
     public function buildAll(array $referenceModels, $originManager)
     {
@@ -89,7 +89,7 @@ class ModelBuilder
      * @param string $className
      * @param array  $data
      *
-     * @return object
+     * @return mixed
      */
     public function createModel($className, array $data)
     {
@@ -101,7 +101,50 @@ class ModelBuilder
     }
 
     /**
-     * @param array $ids
+     * Performed research on the model via their repository.
+     *
+     * @param ClassMetadata $class
+     * @param string        $manager
+     * @param array         $ids
+     * @param callable      $stacker
+     */
+    public function loaderModels(ClassMetadata $class, $manager, array $ids, \Closure $stacker)
+    {
+        $classOfManagerName = $class->getFieldMapping($manager);
+
+        $pool       = $this->manager->getPool();
+        $methodFind = $classOfManagerName->getRepositoryMethod();
+
+        $repository = $pool->getManager($manager)->getRepository($classOfManagerName->getName());
+
+        if ($methodFind && method_exists($repository, $methodFind)) {
+            foreach ($repository->$methodFind($ids) as $object) {
+                $id = $class->getIdentifierValue($object);
+
+                $stacker($id, $object);
+            }
+        } else {
+            trigger_error(sprintf('findOneBy in ModelPersister::loadAll context is depreciate. Define repository-method for "%s" manager model, see mapping for "%s".', $manager, $class->getName()), E_USER_DEPRECATED);
+
+            $repository = $pool->getManager($manager)->getRepository($classOfManagerName->getName());
+            $field      = $class->getIdentifierReference($manager)->field;
+
+            foreach ($ids as $id) {
+                $object = $repository->findOneBy(array($field => $id));
+
+                if (!$object) {
+                    continue;
+                }
+
+                $id = $class->getIdentifierValue($object, $manager);
+
+                $stacker($id, $object);
+            }
+        }
+    }
+
+    /**
+     * @param array $referenceModels
      * @param array $managers
      *
      * @return array
@@ -133,16 +176,24 @@ class ModelBuilder
     /**
      * Returns list of collection.
      *
-     * @param object[] $referenceModels
+     * @param array $referenceModels
      */
     protected function getManagersPerCollection(array $referenceModels)
     {
         $this->collections->clean();
 
         foreach ($this->class->getAssociationDefinitions() as $assoc) {
+            $compatible = $assoc->getCompatible();
+
+            if (!empty($compatible) && !in_array($this->class->getManagerIdentifier(), $compatible)) {
+                continue;
+            }
+
             foreach ($referenceModels as $referenceModel) {
+                $method = 'get' . ucfirst($assoc->getReferenceField($this->class->getManagerIdentifier()));
+
                 /** @var null|object|ArrayCollection $coll */
-                $coll = $referenceModel->{'get'.ucfirst($assoc->getReferenceField($this->class->getManagerIdentifier()))}();
+                $coll = call_user_func(array($referenceModel, $method));
 
                 if (null === $coll || $assoc->isMany() && $coll->isEmpty()) {
                     continue;
@@ -162,42 +213,12 @@ class ModelBuilder
      */
     protected function relayLoadModels(ClassMetadata $class, $manager, array $ids)
     {
-        $classOfManagerName = $class->getFieldMapping($manager);
+        $data    = array();
+        $stacker = function ($id, $object) use (&$data) {
+            $data[$id] = $object;
+        };
 
-        $data       = array();
-        $pool       = $this->manager->getPool();
-        $methodFind = $classOfManagerName->getRepositoryMethod();
-
-        $repository = $pool->getManager($manager)->getRepository($classOfManagerName->getName());
-
-        if ($methodFind && method_exists($repository, $methodFind)) {
-            foreach ($pool->getManager($manager)->getRepository($classOfManagerName->getName())->$methodFind($ids) as $object) {
-                if (!$object) {
-                    continue;
-                }
-
-                $id = $class->getIdentifierValue($object);
-
-                $data[$id] = $object;
-            }
-        } else {
-            trigger_error(sprintf('findOneBy in ModelPersister::loadAll context is depreciate. Define repository-method for "%s" manager model, see mapping for "%s".', $manager, $class->getName()), E_USER_DEPRECATED);
-
-            $repository = $pool->getManager($manager)->getRepository($classOfManagerName->getName());
-            $field      = $class->getIdentifierReference($manager)->field;
-
-            foreach ($ids as $id) {
-                $object = $repository->findOneBy(array($field => $id));
-
-                if (!$object) {
-                    continue;
-                }
-
-                $id = $class->getIdentifierValue($object, $manager);
-
-                $data[$id] = $object;
-            }
-        }
+        $this->loaderModels($class, $manager, $ids, $stacker);
 
         return $data;
     }

@@ -28,8 +28,8 @@ class UnitOfWork
     }
 
     /**
-     * @param null|object|array $models  (optional)
-     * @param array             $options (optional)
+     * @param null|mixed|array $models  (optional)
+     * @param array            $options (optional)
      */
     public function commit($models = null, array $options = array())
     {
@@ -54,7 +54,7 @@ class UnitOfWork
     }
 
     /**
-     * @param object $model
+     * @param mixed $model
      *
      * @throws \RuntimeException
      */
@@ -84,7 +84,7 @@ class UnitOfWork
     }
 
     /**
-     * @param object $model
+     * @param mixed $model
      */
     public function remove($model)
     {
@@ -97,7 +97,7 @@ class UnitOfWork
     }
 
     /**
-     * @param object $model
+     * @param mixed $model
      *
      * @return object
      */
@@ -112,7 +112,7 @@ class UnitOfWork
     }
 
     /**
-     * @param object $model The model to detach.
+     * @param mixed $model The model to detach.
      */
     public function detach($model)
     {
@@ -125,7 +125,7 @@ class UnitOfWork
     }
 
     /**
-     * @param object $model
+     * @param mixed $model
      */
     public function refresh($model)
     {
@@ -138,7 +138,7 @@ class UnitOfWork
     }
 
     /**
-     * @param string $model (optional)
+     * @param mixed $model (optional)
      */
     public function clear($model = null)
     {
