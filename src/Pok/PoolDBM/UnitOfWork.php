@@ -2,10 +2,17 @@
 
 namespace Pok\PoolDBM;
 
+use Doctrine\Common\Persistence\ObjectManager;
+
 use Pok\PoolDBM\Persisters\ModelPersister;
 
 class UnitOfWork
 {
+    /**
+     * @var \SplObjectStorage
+     */
+    protected $models;
+
     /**
      * @var ModelManager
      */
@@ -23,18 +30,55 @@ class UnitOfWork
      */
     public function __construct(ModelManager $manager)
     {
-        $this->manager    = $manager;
+        $this->manager = $manager;
+
+        $this->models     = new \SplObjectStorage();
         $this->persisters = array();
     }
 
     /**
-     * @param null|mixed|array $models  (optional)
-     * @param array            $options (optional)
+     * @param null|mixed|array $models (optional)
      */
-    public function commit($models = null, array $options = array())
+    public function commit($models = null)
     {
+        $pool = $this->manager->getPool();
+        /** @var ObjectManager[] $managers */
+        $managers = $pool->getIterator();
+
         if (null === $models) {
-            foreach ($this->manager->getPool()->getIterator() as $manager) {
+            foreach ($managers as $manager) {
+                $manager->flush();
+            }
+
+            if (!$this->models->count()) {
+                return;
+            }
+
+            $this->models->rewind();
+            while ($this->models->valid()) {
+                $model = $this->models->current();
+
+                $id = call_user_func(array($model, 'get' . ucfirst($this->manager->getClassMetadata(get_class($model))->getIdentifier())));
+
+                foreach ($this->models->getInfo() as $managerName) {
+                    $modelManager = call_user_func(array($model, 'get' . ucfirst($managerName)));
+
+                    $identifier = $pool->getManager($managerName)->getClassMetadata(get_class($modelManager))->getIdentifier();
+                    if (is_array($identifier)) {
+                        $identifier = array_pop($identifier);
+                    }
+
+                    call_user_func(array($model, 'get' . ucfirst($identifier)), $id);
+                    $pool->getManager($managerName)->persist($modelManager);
+                }
+
+                $this->models->next();
+            }
+
+            // clear list
+            $this->models = new \SplObjectStorage();
+
+            foreach ($managers as $manager) {
                 $manager->flush();
             }
         } else {
@@ -42,12 +86,27 @@ class UnitOfWork
                 $models = array($models);
             }
 
-            foreach ((array) $models as $model) {
-                $class = $this->manager->getClassMetadata(get_class($model));
-                $pool  = $this->manager->getPool();
+            foreach ($models as $model) {
+                $class       = $this->manager->getClassMetadata(get_class($model));
+                $pool        = $this->manager->getPool();
+                $managerName = $class->getManagerReferenceGenerator();
+
+                $ref = call_user_func(array($model, 'get' . ucfirst($managerName)));
+                $pool->getManager($managerName)->flush($ref);
+
+                $id = call_user_func(array($ref, 'get' . ucfirst($this->manager->getClassMetadata(get_class($model))->getIdentifier())));
 
                 foreach ($class->getFieldManagerNames() as $managerName) {
-                    $pool->getManager($managerName)->flush($model->{'get' . ucfirst($managerName)}(), $options);
+                    $modelManager = call_user_func(array($model, 'get' . ucfirst($managerName)));
+
+                    $identifier = $pool->getManager($managerName)->getClassMetadata(get_class($modelManager))->getIdentifier();
+                    if (is_array($identifier)) {
+                        $identifier = array_pop($identifier);
+                    }
+
+                    call_user_func(array($modelManager, 'get' . ucfirst($identifier)), $id);
+                    $pool->getManager($managerName)->persist($modelManager);
+                    $pool->getManager($managerName)->flush($modelManager);
                 }
             }
         }
@@ -65,22 +124,13 @@ class UnitOfWork
         $pool     = $this->manager->getPool();
 
         $managerName = $class->getManagerReferenceGenerator();
-        $referenceModel = $model->{'get' . ucfirst($managerName)}();
+        $referenceModel = call_user_func(array($model, 'get' . ucfirst($managerName)));
 
         $pool->getManager($managerName)->persist($referenceModel);
 
         unset($managers[$managerName]);
 
-        foreach ($managers as $managerName) {
-            $managerModel = $model->{'get' . ucfirst($managerName)}();
-            if (!is_object($managerModel)) {
-                throw new \RuntimeException(sprintf('Getter manager "%s" must be returns object, "%s" given by model "%s".', $managerName, get_class($model), gettype($managerModel)));
-            }
-
-            $managerModel->setId($referenceModel->getId());
-
-            $pool->getManager($managerName)->persist($managerModel);
-        }
+        $this->models->attach($model, $managers);
     }
 
     /**
@@ -92,7 +142,7 @@ class UnitOfWork
         $pool  = $this->manager->getPool();
 
         foreach ($class->getFieldManagerNames() as $managerName) {
-            $pool->getManager($managerName)->remove($model->{'get' . ucfirst($managerName)}());
+            $pool->getManager($managerName)->remove(call_user_func(array($model, 'get' . ucfirst($managerName))));
         }
     }
 
@@ -107,7 +157,7 @@ class UnitOfWork
         $pool  = $this->manager->getPool();
 
         foreach ($class->getFieldManagerNames() as $managerName) {
-            $pool->getManager($managerName)->merge($model->{'get' . ucfirst($managerName)}());
+            $pool->getManager($managerName)->merge(call_user_func(array($model, 'get' . ucfirst($managerName))));
         }
     }
 
@@ -120,7 +170,7 @@ class UnitOfWork
         $pool  = $this->manager->getPool();
 
         foreach ($class->getFieldManagerNames() as $managerName) {
-            $pool->getManager($managerName)->detach($model->{'get' . ucfirst($managerName)}());
+            $pool->getManager($managerName)->detach(call_user_func(array($model, 'get' . ucfirst($managerName))));
         }
     }
 
@@ -133,7 +183,7 @@ class UnitOfWork
         $pool  = $this->manager->getPool();
 
         foreach ($class->getFieldManagerNames() as $managerName) {
-            $pool->getManager($managerName)->refresh($model->{'get' . ucfirst($managerName)}());
+            $pool->getManager($managerName)->refresh(call_user_func(array($model, 'get' . ucfirst($managerName))));
         }
     }
 
@@ -143,6 +193,8 @@ class UnitOfWork
     public function clear($model = null)
     {
         if (null === $model) {
+            $this->models = new \SplObjectStorage();
+
             foreach ($this->manager->getPool()->getIterator() as $manager) {
                 if (method_exists($manager, 'clear')) {
                     $manager->clear(null);
@@ -152,11 +204,15 @@ class UnitOfWork
             $class = $this->manager->getClassMetadata(get_class($model));
             $pool  = $this->manager->getPool();
 
+            if ($this->models->contains($model)) {
+                $this->models->detach($model);
+            }
+
             foreach ($class->getFieldManagerNames() as $managerName) {
                 $manager = $pool->getManager($managerName);
 
                 if (method_exists($manager, 'clear')) {
-                    $manager->clear($model->{'get' . ucfirst($managerName)}());
+                    $manager->clear(call_user_func(array($model, 'get' . ucfirst($managerName))));
                 }
             }
         }
