@@ -15,7 +15,15 @@ class ObjectManagerMock extends stdClassMock implements ObjectManager
     public function merge($object) {}
     public function detach($object) {}
     public function refresh($object) {}
-    public function getClassMetadata($className) {}
+
+    public function getClassMetadata($className)
+    {
+        $meta = new ClassMetadataMock();
+        $meta->className = $className;
+
+        return $meta;
+    }
+
     public function getMetadataFactory() {}
     public function initializeObject($obj) {}
     public function contains($object) {}
