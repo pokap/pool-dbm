@@ -9,7 +9,7 @@ class ObjectManagerMock extends stdClassMock implements ObjectManager
     public function getRepository($className) {}
     public function persist($object) {}
     public function remove($object) {}
-    public function flush($object = null) {}
+    public function flush() {}
     public function clear($object = null) {}
     public function find($className, $id) {}
     public function merge($object) {}

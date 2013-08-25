@@ -97,19 +97,21 @@ class XmlDriver extends FileDriver
 
         $class->setIdentifier((string) $parameters['manager'], (string) $parameters['field']);
 
-        foreach ($reference as $config) {
-            /** @var \SimpleXMLElement $config */
-            switch ($config->getName()) {
-                case 'reference':
-                    $class->addIdentifierReference(
-                        (string) $config['manager'],
-                        (isset($config['reference-field'])? (string) $config['reference-field']: (string) $parameters['field']),
-                        (string) $config['field']
-                    );
-                    break;
-                case 'id-generator':
-                    $class->setManagerReferenceGenerator((string) $config['target-manager']);
-                    break;
+        foreach ($reference as $element) {
+            foreach ($element as $config) {
+                /** @var \SimpleXMLElement $config */
+                switch ($config->getName()) {
+                    case 'reference':
+                        $class->addIdentifierReference(
+                            (string) $config['manager'],
+                            (isset($config['reference-field'])? (string) $config['reference-field']: (string) $parameters['field']),
+                            (string) $config['field']
+                        );
+                        break;
+                    case 'id-generator':
+                        $class->setManagerReferenceGenerator((string) $config['target-manager']);
+                        break;
+                }
             }
         }
     }
