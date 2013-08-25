@@ -57,19 +57,15 @@ class UnitOfWork
             $this->models->rewind();
             while ($this->models->valid()) {
                 $model = $this->models->current();
+                $class = $this->manager->getClassMetadata(get_class($model));
+                $managerName = $class->getManagerReferenceGenerator();
 
-                $id = call_user_func(array($model, 'get' . ucfirst($this->manager->getClassMetadata(get_class($model))->getIdentifier())));
+                $ref = call_user_func(array($model, 'get' . ucfirst($managerName)));
+
+                $id = call_user_func(array($ref, 'get' . ucfirst($class->getIdentifierReference($managerName)->referenceField)));
 
                 foreach ($this->models->getInfo() as $managerName) {
-                    $modelManager = call_user_func(array($model, 'get' . ucfirst($managerName)));
-
-                    $identifier = $pool->getManager($managerName)->getClassMetadata(get_class($modelManager))->getIdentifier();
-                    if (is_array($identifier)) {
-                        $identifier = array_pop($identifier);
-                    }
-
-                    call_user_func(array($model, 'get' . ucfirst($identifier)), $id);
-                    $pool->getManager($managerName)->persist($modelManager);
+                    $this->saveSpecificModel($model, $managerName, $id);
                 }
 
                 $this->models->next();
@@ -77,36 +73,22 @@ class UnitOfWork
 
             // clear list
             $this->models = new \SplObjectStorage();
-
-            foreach ($managers as $manager) {
-                $manager->flush();
-            }
         } else {
             if (!is_array($models)) {
                 $models = array($models);
             }
 
             foreach ($models as $model) {
-                $class       = $this->manager->getClassMetadata(get_class($model));
-                $pool        = $this->manager->getPool();
+                $class = $this->manager->getClassMetadata(get_class($model));
                 $managerName = $class->getManagerReferenceGenerator();
 
                 $ref = call_user_func(array($model, 'get' . ucfirst($managerName)));
                 $pool->getManager($managerName)->flush($ref);
 
-                $id = call_user_func(array($ref, 'get' . ucfirst($this->manager->getClassMetadata(get_class($model))->getIdentifier())));
+                $id = call_user_func(array($ref, 'get' . ucfirst($class->getIdentifierReference($managerName)->referenceField)));
 
                 foreach ($class->getFieldManagerNames() as $managerName) {
-                    $modelManager = call_user_func(array($model, 'get' . ucfirst($managerName)));
-
-                    $identifier = $pool->getManager($managerName)->getClassMetadata(get_class($modelManager))->getIdentifier();
-                    if (is_array($identifier)) {
-                        $identifier = array_pop($identifier);
-                    }
-
-                    call_user_func(array($modelManager, 'get' . ucfirst($identifier)), $id);
-                    $pool->getManager($managerName)->persist($modelManager);
-                    $pool->getManager($managerName)->flush($modelManager);
+                    $this->saveSpecificModel($model, $managerName, $id);
                 }
             }
         }
@@ -128,7 +110,7 @@ class UnitOfWork
 
         $pool->getManager($managerName)->persist($referenceModel);
 
-        unset($managers[$managerName]);
+        unset($managers[array_search($managerName, $managers)]);
 
         $this->models->attach($model, $managers);
     }
@@ -282,5 +264,22 @@ class UnitOfWork
         }
 
         return $model;
+    }
+
+    /**
+     * @param mixed  $model
+     * @param string $managerName
+     * @param mixed  $id
+     */
+    protected function saveSpecificModel($model, $managerName, $id)
+    {
+        $class = $this->manager->getClassMetadata(get_class($model));
+        $pool = $this->manager->getPool();
+        $modelManager = call_user_func(array($model, 'get' . ucfirst($managerName)));
+
+        call_user_func(array($modelManager, 'set' . ucfirst($class->getIdentifierReference($managerName)->referenceField)), $id);
+
+        $pool->getManager($managerName)->persist($modelManager);
+        $pool->getManager($managerName)->flush();
     }
 }

@@ -141,13 +141,6 @@ class EntityManager extends ObjectManagerMock
         }
     }
 
-    public function flush($entity = null)
-    {
-        if (!$entity instanceof EntityTest) {
-            throw new \RuntimeException();
-        }
-    }
-
     public function clear($entity = null)
     {
         if (null != $entity) {
