@@ -267,9 +267,13 @@ class UnitOfWork
     }
 
     /**
-     * @param mixed  $model
-     * @param string $managerName
-     * @param mixed  $id
+     * Persist a model his manager doctrine.
+     *
+     * @param mixed  $model       The model instance
+     * @param string $managerName Manager name like "entity" or "document" manager
+     * @param mixed  $id          Identifier value
+     *
+     * @throws \RuntimeException When the flush is thrown
      */
     protected function saveSpecificModel($model, $managerName, $id)
     {
@@ -279,7 +283,11 @@ class UnitOfWork
 
         call_user_func(array($modelManager, 'set' . ucfirst($class->getIdentifierReference($managerName)->referenceField)), $id);
 
-        $pool->getManager($managerName)->persist($modelManager);
-        $pool->getManager($managerName)->flush();
+        try {
+            $pool->getManager($managerName)->persist($modelManager);
+            $pool->getManager($managerName)->flush();
+        } catch (\Exception $e) {
+            throw new \RuntimeException(sprintf('Error : %s WITH Model %s and manager %s', $e->getMessage(), $managerName, get_class($modelManager)));
+        }
     }
 }

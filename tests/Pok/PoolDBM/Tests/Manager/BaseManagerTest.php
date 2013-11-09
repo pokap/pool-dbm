@@ -26,13 +26,8 @@ class BaseManagerTest extends \PHPUnit_Framework_TestCase
         $pool->addManager('entity', new EntityManager());
 
         $manager = new TestManager(__NAMESPACE__ . '\\ModelTest', new ModelManager($pool, $metadataFactory));
-        $refl = new \ReflectionClass(get_class($manager));
 
-        $repo = $refl->getMethod('getRepository');
-        $this->assertTrue($repo->isProtected());
-        $repo->setAccessible(true);
-        $this->assertInstanceOf('Pok\\PoolDBM\\ModelRepository', $repo->invoke($manager));
-
+        $this->assertInstanceOf('Pok\\PoolDBM\\ModelRepository', $manager->getRepository($manager));
         $this->assertInstanceOf(__NAMESPACE__ . '\\ModelTest', $manager->create());
 
         $manager->save(new ModelTest());

@@ -1,7 +1,7 @@
 {
     "name": "pokap/pool-dbm",
     "type": "library",
-    "description": "Multiple gbd manager",
+    "description": "Multiple dbm manager",
     "keywords": ["multiple", "repositories", "managers", "pool", "dbms", "doctrine"],
     "license": "MIT",
     "authors": [
