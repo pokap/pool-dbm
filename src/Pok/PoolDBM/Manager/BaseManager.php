@@ -155,7 +155,7 @@ class BaseManager
      *
      * @return \Pok\PoolDBM\ModelRepository
      */
-    protected function getRepository()
+    public function getRepository()
     {
         return $this->manager->getRepository($this->class);
     }

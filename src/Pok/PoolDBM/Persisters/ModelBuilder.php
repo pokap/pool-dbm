@@ -73,8 +73,8 @@ class ModelBuilder
         $result = $this->getResult($referenceModels, $originManager);
 
         // pre-init data
-        foreach ($referenceModels as $id => $referenceModel) {
-            $result[$id][$originManager] = $referenceModel;
+        foreach ($referenceModels as $referenceModel) {
+            $result[$this->class->getIdentifierValue($referenceModel)][$originManager] = $referenceModel;
         }
 
         $models = array();

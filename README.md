@@ -21,8 +21,7 @@ Additionally, several tags are available:
 Next Improvement
 -------------
 
-Support of reference one and many to other multi-model.
-With cascade persist, remove, etc.
+Optimize request doctrine with relation. And adding tests with real dbm.
 
 Usage
 -------------

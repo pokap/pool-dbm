@@ -150,33 +150,6 @@ class ModelRepository
      */
     protected function hydrate(array $objects)
     {
-        $models = array();
-        foreach ($this->class->getFieldManagerNames() as $managerName) {
-            $models[$managerName] = $this->class->getFieldMapping($managerName)->getName();
-        }
-
-        $data = array();
-        $ids = array();
-        foreach ($objects as $object) {
-            $id = $this->class->getIdentifierValue($object);
-
-            $data[$id][$this->class->getManagerIdentifier()] = $object;
-            $ids[] = $id;
-        }
-
-        unset($models[$this->class->getManagerIdentifier()]);
-
-        foreach ($models as $manager => $model) {
-            $this->modelBuilder->loaderModels($this->class, $manager, $ids, function ($id, $object) use (&$data, $manager) {
-                $data[$id][$manager] = $object;
-            });
-        }
-
-        $result = array();
-        foreach ($ids as $id) {
-            $result[] = $this->modelBuilder->createModel($this->class->getName(), $data[$id]);
-        }
-
-        return $result;
+        return $this->modelBuilder->buildAll($objects, $this->class->getManagerIdentifier());
     }
 }

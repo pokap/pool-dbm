@@ -98,12 +98,7 @@ class ModelPersister
             $models[$manager] = $this->class->getFieldMapping($manager)->getName();
         }
 
-        $data = array();
-        foreach ($pool->getManager($manager_id)->getRepository($models[$manager_id])->findBy($criteria, $orderBy, $limit, $offset) as $object) {
-            $id = $this->class->getIdentifierValue($object);
-
-            $data[$id] = $object;
-        }
+        $data = $pool->getManager($manager_id)->getRepository($models[$manager_id])->findBy($criteria, $orderBy, $limit, $offset);
 
         if (empty($data)) {
             return array();
