@@ -48,7 +48,7 @@ class ModelPersisterTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(3, $model->entity->id);
         $this->assertInstanceOf($this->getFixtures('Test1\\Document'), $model->document);
         $this->assertEquals($model->entity->id, $model->document->id);
-        $this->assertEquals(2, count($model->childrens));
+        $this->assertEquals(0, count($model->childrens)); // force optimization
 
         // load 5
         $model = $persisters->load(5);
@@ -57,7 +57,7 @@ class ModelPersisterTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(5, $model->entity->id);
         $this->assertInstanceOf($this->getFixtures('Test1\\Document'), $model->document);
         $this->assertEquals($model->entity->id, $model->document->id);
-        $this->assertInstanceOf($this->getFixtures('Test1\\MultiModel'), $model->parent);
+        $this->assertNull($model->parent); // force optimization
 
         // load all
         $models = $persisters->loadAll();
@@ -71,20 +71,12 @@ class ModelPersisterTest extends \PHPUnit_Framework_TestCase
             $this->assertInstanceOf($this->getFixtures('Test1\\Document'), $model->document);
             $this->assertEquals($model->entity->id, $model->document->id);
 
-            if ($model->getId() == 3) {
-                $this->assertEquals(2, count($model->childrens));
-            } else {
-                $this->assertEquals(0, count($model->childrens));
-            }
-
-            if (in_array($model->getId(), array(1,5))) {
-                $this->assertInstanceOf($this->getFixtures('Test1\\MultiModel'), $model->parent);
-            } else {
-                $this->assertNull($model->parent);
-            }
+            // force optimization
+            $this->assertEquals(0, count($model->childrens));
+            $this->assertNull($model->parent);
         }
 
-        $this->assertEquals(12, Fixtures\Test1\EntityRepository::$count + Fixtures\Test1\DocumentRepository::$count);
+        $this->assertEquals(8, Fixtures\Test1\EntityRepository::$count + Fixtures\Test1\DocumentRepository::$count);
     }
 
     public function test2()
@@ -135,7 +127,7 @@ class ModelPersisterTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(1, $model->entity->id);
         $this->assertInstanceOf($this->getFixtures('Test2\\Document\\User'), $model->document);
         $this->assertEquals($model->entity->id, $model->document->id);
-        $this->assertEquals(2, count($model->groups));
+        $this->assertEquals(0, count($model->groups)); // force optimization
 
         // Group
         $persisters = new ModelPersister($manager, new UnitOfWork($manager), $metadatas[$this->getFixtures('Test2\\Model\\Group')]);
@@ -149,7 +141,7 @@ class ModelPersisterTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(1, $model->entity->id);
         $this->assertInstanceOf($this->getFixtures('Test2\\Document\\Group'), $model->document);
         $this->assertEquals($model->entity->documentId, $model->document->id);
-        $this->assertEquals(2, count($model->users));
+        $this->assertEquals(0, count($model->users)); // force optimization
     }
 
     /**

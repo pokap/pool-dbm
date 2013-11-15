@@ -98,11 +98,12 @@ class ModelRepository
      * @param mixed        $qb      Query or QueryBuilder object
      * @param integer|null $count   Number of items to retrieve (optional)
      * @param boolean      $hydrate Multi hydratation model (optional)
+     * @param array        $fields  List of fields prime (optional)
      * @param boolean      $except  Keep object and ignore field adding in select query (optional)
      *
      * @return mixed
      */
-    protected function getQueryBuilderResult($qb, $count = null, $hydrate = true, $except = false)
+    protected function getQueryBuilderResult($qb, $count = null, $hydrate = true, array $fields = array(), $except = false)
     {
         $result = $qb->execute();
 
@@ -119,7 +120,7 @@ class ModelRepository
         }
 
         if ($hydrate) {
-            $result = $this->hydrate((array) $result);
+            $result = $this->hydrate((array) $result, $fields);
         }
 
         if ($count === 1) {
@@ -145,11 +146,12 @@ class ModelRepository
      * Multiple hydration model.
      *
      * @param array $objects
+     * @param array $fields  List of fields prime (optional)
      *
      * @return array
      */
-    protected function hydrate(array $objects)
+    protected function hydrate(array $objects, array $fields = array())
     {
-        return $this->modelBuilder->buildAll($objects, $this->class->getManagerIdentifier());
+        return $this->modelBuilder->buildAll($objects, $this->class->getManagerIdentifier(), $fields);
     }
 }

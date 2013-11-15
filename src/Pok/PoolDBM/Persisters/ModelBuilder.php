@@ -44,12 +44,13 @@ class ModelBuilder
     /**
      * @param mixed  $referenceModel
      * @param string $originManager
+     * @param array  $fields         List of fields prime (optional)
      *
      * @return mixed
      */
-    public function build($referenceModel, $originManager)
+    public function build($referenceModel, $originManager, array $fields = array())
     {
-        $this->getManagersPerCollection(array($referenceModel));
+        $this->getManagersPerCollection(array($referenceModel), $fields);
         $result = $this->getResult(array($referenceModel), $originManager);
 
         if (!empty($result)) {
@@ -64,12 +65,13 @@ class ModelBuilder
     /**
      * @param array  $referenceModels
      * @param string $originManager
+     * @param array  $fields          List of fields prime (optional)
      *
      * @return array
      */
-    public function buildAll(array $referenceModels, $originManager)
+    public function buildAll(array $referenceModels, $originManager, array $fields = array())
     {
-        $this->getManagersPerCollection($referenceModels);
+        $this->getManagersPerCollection($referenceModels, $fields);
         $result = $this->getResult($referenceModels, $originManager);
 
         // pre-init data
@@ -177,10 +179,17 @@ class ModelBuilder
      * Returns list of collection.
      *
      * @param array $referenceModels
+     * @param array $fields          List of fields prime (optional)
+     *
+     * @return void
      */
-    protected function getManagersPerCollection(array $referenceModels)
+    protected function getManagersPerCollection(array $referenceModels, array $fields = array())
     {
         $this->collections->clean();
+
+        if (!empty($fields)) {
+            return;
+        }
 
         foreach ($this->class->getAssociationDefinitions() as $assoc) {
             $compatible = $assoc->getCompatible();
@@ -190,10 +199,14 @@ class ModelBuilder
             }
 
             foreach ($referenceModels as $referenceModel) {
-                $method = 'get' . ucfirst($assoc->getReferenceField($this->class->getManagerIdentifier()));
+                $property = $assoc->getReferenceField($this->class->getManagerIdentifier());
+
+                if (!in_array($property, $fields)) {
+                    continue;
+                }
 
                 /** @var null|object|ArrayCollection $coll */
-                $coll = call_user_func(array($referenceModel, $method));
+                $coll = call_user_func(array($referenceModel, 'get' . ucfirst($property)));
 
                 if (null === $coll || $assoc->isMany() && $coll->isEmpty()) {
                     continue;
