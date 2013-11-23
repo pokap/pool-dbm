@@ -187,7 +187,7 @@ class ModelBuilder
     {
         $this->collections->clean();
 
-        if (!empty($fields)) {
+        if (empty($fields)) {
             return;
         }
 
