@@ -93,6 +93,19 @@ class ModelRepository
     }
 
     /**
+     * Multiple hydration model.
+     *
+     * @param array $objects
+     * @param array $fields  List of fields prime (optional)
+     *
+     * @return array
+     */
+    public function hydrate(array $objects, array $fields = array())
+    {
+        return $this->modelBuilder->buildAll($objects, $this->class->getManagerIdentifier(), $fields);
+    }
+
+    /**
      * Return the result for given query builder object.
      *
      * @param mixed        $qb      Query or QueryBuilder object
@@ -140,18 +153,5 @@ class ModelRepository
     protected function getQueryBuilderOneOrNullResult($qb)
     {
         return $this->getQueryBuilderResult($qb, 1);
-    }
-
-    /**
-     * Multiple hydration model.
-     *
-     * @param array $objects
-     * @param array $fields  List of fields prime (optional)
-     *
-     * @return array
-     */
-    protected function hydrate(array $objects, array $fields = array())
-    {
-        return $this->modelBuilder->buildAll($objects, $this->class->getManagerIdentifier(), $fields);
     }
 }

@@ -128,7 +128,12 @@ class ModelManager implements ObjectManager
     }
 
     /**
-     * {@inheritdoc}
+     * Create a new query builder instance that is prepopulated for this model name.
+     *
+     * @param string $className
+     * @param string $alias
+     *
+     * @return mixed
      */
     public function createQueryBuilder($className, $alias)
     {
@@ -136,7 +141,7 @@ class ModelManager implements ObjectManager
     }
 
     /**
-     * @param mixed $model The document instance to remove.
+     * @param mixed $model The model instance to remove.
      *
      * @throws \RuntimeException When manager is closed
      */
@@ -147,7 +152,7 @@ class ModelManager implements ObjectManager
     }
 
     /**
-     * @param mixed $model The document instance to remove.
+     * @param mixed $model The model instance to remove.
      *
      * @throws \RuntimeException When manager is closed
      */
@@ -158,7 +163,7 @@ class ModelManager implements ObjectManager
     }
 
     /**
-     * @param mixed $model The document to refresh.
+     * @param mixed $model The model to refresh.
      *
      * @throws \RuntimeException When manager is closed
      */
@@ -169,7 +174,7 @@ class ModelManager implements ObjectManager
     }
 
     /**
-     * @param mixed $model The document to detach.
+     * @param mixed $model The model to detach.
      */
     public function detach($model)
     {
@@ -177,9 +182,9 @@ class ModelManager implements ObjectManager
     }
 
     /**
-     * @param mixed $model The detached document to merge into the persistence context.
+     * @param mixed $model The detached model to merge into the persistence context.
      *
-     * @return object The managed copy of the document
+     * @return object The managed copy of the model
      *
      * @throws \RuntimeException When manager is closed
      */
@@ -191,16 +196,19 @@ class ModelManager implements ObjectManager
     }
 
     /**
-     * @param  string             $modelName The name of the Model.
-     * @return DocumentRepository The repository.
+     * Returns the model repository instance given by model name.
+     *
+     * @param string $className The name of the Model
+     *
+     * @return ModelRepository The repository
      */
-    public function getRepository($modelName)
+    public function getRepository($className)
     {
-        if (isset($this->repositories[$modelName])) {
-            return $this->repositories[$modelName];
+        if (isset($this->repositories[$className])) {
+            return $this->repositories[$className];
         }
 
-        $metadata = $this->getClassMetadata($modelName);
+        $metadata = $this->getClassMetadata($className);
         $customRepositoryClassName = $metadata->getCustomRepositoryClassName();
 
         if ($customRepositoryClassName !== null) {
@@ -209,9 +217,32 @@ class ModelManager implements ObjectManager
             $repository = new ModelRepository($this, $this->unitOfWork, $metadata);
         }
 
-        $this->repositories[$modelName] = $repository;
+        $this->repositories[$className] = $repository;
 
         return $repository;
+    }
+
+    /**
+     * Hydrate a model.
+     *
+     * @param mixed $model
+     * @param array $fields List of fields prime (optional)
+     *
+     * @return null|object|object[]
+     */
+    public function hydrate($model, array $fields = array())
+    {
+        if (is_array($model)) {
+            return $this->getRepository(get_class(reset($model)))->hydrate($model, $fields);
+        }
+
+        $row = $this->getRepository(get_class($model))->hydrate(array($model), $fields);
+
+        if (empty($row)) {
+            return null;
+        }
+
+        return $row[0];
     }
 
     /**
@@ -325,7 +356,7 @@ class ModelManager implements ObjectManager
     /**
      * Throws an exception if the ModelManager is closed or currently not active.
      *
-     * @throws ModelException If the ModelManager is closed.
+     * @throws \RuntimeException When the ModelManager is closed
      */
     private function errorIfClosed()
     {
