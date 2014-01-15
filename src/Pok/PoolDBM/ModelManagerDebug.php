@@ -89,6 +89,22 @@ class ModelManagerDebug extends ModelManager
 
     /**
      * {@inheritDoc}
+     *
+     * @throws \InvalidArgumentException When class name is not a string
+     */
+    public function getRepository($className)
+    {
+        if (!is_string($className)) {
+            throw new \InvalidArgumentException(sprintf('Class name must be a string, "%s" given.',
+                is_object($className) ? 'Object ' . get_class($className) : gettype($className)
+            ));
+        }
+
+        return parent::getRepository($className);
+    }
+
+    /**
+     * {@inheritDoc}
      */
     public function flush($model = null, array $options = array())
     {
