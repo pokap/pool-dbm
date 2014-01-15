@@ -233,10 +233,10 @@ class ModelManager implements ObjectManager
     public function hydrate($model, array $fields = array())
     {
         if (is_array($model)) {
-            return $this->getRepository($this->resolveModelClassName(get_class(reset($model))))->hydrate($model, $fields);
+            return $this->getRepository($this->resolveModelClassName(reset($model)))->hydrate($model, $fields);
         }
 
-        $row = $this->getRepository($this->resolveModelClassName(get_class($model)))->hydrate(array($model), $fields);
+        $row = $this->getRepository($this->resolveModelClassName($model))->hydrate(array($model), $fields);
 
         if (empty($row)) {
             return null;
@@ -248,16 +248,18 @@ class ModelManager implements ObjectManager
     /**
      * Resolve model class name by sub model.
      *
-     * @param string $className
+     * @param mixed $model
      *
      * @return null|string
+     *
+     * TODO: adding cache resolve
      */
-    public function resolveModelClassName($className)
+    public function resolveModelClassName($model)
     {
         foreach ($this->metadataFactory->getAllMetadata() as $metadata) {
             /** @var Mapping\ClassMetadata $metadata */
             foreach ($metadata->getFieldMappings() as $mapping) {
-                if ($mapping->getName() === $className) {
+                if (is_a($model, $mapping->getName())) {
                     return $metadata->getName();
                 }
             }
