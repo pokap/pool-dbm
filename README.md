@@ -59,3 +59,7 @@ Mapping:
     <relation-many field="posts" target-model="MultiModel\Post" compatible="entity,document" />
 </multi-model>
 ```
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/pokap/pool-dbm/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
