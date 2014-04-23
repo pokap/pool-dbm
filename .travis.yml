@@ -12,7 +12,6 @@ matrix:
         - php: hhvm
 
 before_script:
-  - wget -nc http://getcomposer.org/composer.phar
-  - php composer.phar install
+  - composer install --dev
 
 script: phpunit
