@@ -40,7 +40,9 @@ class GroupRepository
         $list[0]->users[] = $user1;
         $list[0]->users[] = $user2;
 
-        $list[1]->users[] = $user1;
+        if (isset($list[1])) {
+            $list[1]->users[] = $user1;
+        }
 
         return $list;
     }
