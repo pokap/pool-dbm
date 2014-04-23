@@ -78,7 +78,12 @@ class ModelBuilder
         // pre-init data
         $models = array();
         foreach ($referenceModels as $referenceModel) {
-            $data = $result[$this->class->getIdentifierValue($referenceModel)];
+            $data = array();
+
+            if (isset($result[$this->class->getIdentifierValue($referenceModel)])) {
+                $data = $result[$this->class->getIdentifierValue($referenceModel)];
+            }
+
             $data[$originManager] = $referenceModel;
 
             $models[] = $this->createModel($this->class->getName(), $data);
