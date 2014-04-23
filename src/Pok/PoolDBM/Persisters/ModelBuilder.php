@@ -3,6 +3,7 @@
 namespace Pok\PoolDBM\Persisters;
 
 use Doctrine\Common\Collections\ArrayCollection;
+
 use Pok\PoolDBM\Mapping\ClassMetadata;
 use Pok\PoolDBM\Mapping\Definition\AssociationDefinition;
 use Pok\PoolDBM\ModelManager;
@@ -75,12 +76,11 @@ class ModelBuilder
         $result = $this->getResult($referenceModels, $originManager);
 
         // pre-init data
-        foreach ($referenceModels as $referenceModel) {
-            $result[$this->class->getIdentifierValue($referenceModel)][$originManager] = $referenceModel;
-        }
-
         $models = array();
-        foreach ($result as $data) {
+        foreach ($referenceModels as $referenceModel) {
+            $data = $result[$this->class->getIdentifierValue($referenceModel)];
+            $data[$originManager] = $referenceModel;
+
             $models[] = $this->createModel($this->class->getName(), $data);
         }
 
@@ -237,7 +237,7 @@ class ModelBuilder
     }
 
     /**
-     * @param array  $ids
+     * @param array  $referenceModels
      * @param string $ignoreOriginManager
      *
      * @return array
@@ -262,6 +262,7 @@ class ModelBuilder
             }
         }
 
+        // prepare result element with current model
         if (isset($datas[$this->class->getName()])) {
             foreach ($referenceModels as $referenceModel) {
                 foreach ($originManagers as $manager) {
