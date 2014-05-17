@@ -318,16 +318,12 @@ class ModelBuilder
                 foreach ($collDatas as $collData) {
                     $collection = $collData->getCollectionCenter();
 
+                    $model = $this->createModel($collection->getClassName(), $collData->getDatas());
+
                     if ($collection->isMany()) {
-                        $result[$idRef][$collection->getField()][] = $this->createModel(
-                            $collection->getClassName(),
-                            $collData->getDatas()
-                        );
+                        $result[$idRef][$collection->getField()][] = $model;
                     } else {
-                        $result[$idRef][$collection->getField()] = $this->createModel(
-                            $collection->getClassName(),
-                            $collData->getFirstData()
-                        );
+                        $result[$idRef][$collection->getField()] = $model;
                     }
                 }
             }
