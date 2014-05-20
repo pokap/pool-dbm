@@ -304,27 +304,34 @@ class ModelBuilder
                             continue;
                         }
 
-                        if (!isset($assocs[$collection->getIdentifierRef()][$id])) {
-                            $assocs[$collection->getIdentifierRef()][$id] = new CollectionCenterData($collection);
+                        $ccd = &$assocs[$collection->getIdentifierRef()];
+
+                        if (!isset($ccd[$collection->getField()][$id])) {
+                            $ccd[$collection->getField()][$id] = new CollectionCenterData($collection);
                         }
 
-                        $assocs[$collection->getIdentifierRef()][$id]->addData($manager, $datas[$collection->getClassName()][$id][$manager]);
+                        $ccd[$collection->getField()][$id]->addData($manager, $datas[$collection->getClassName()][$id][$manager]);
                     }
+
+                    unset($ccd);
                 }
             }
 
             foreach ($assocs as $idRef => $collDatas) {
-                /** @var CollectionCenterData[] $collDatas */
-                foreach ($collDatas as $collData) {
-                    $collection = $collData->getCollectionCenter();
+                /** @var CollectionCenterData[] $collData */
+                foreach ($collDatas as $field => $collData) {
+                    foreach ($collData as $coll) {
+                        $collection = $coll->getCollectionCenter();
 
-                    $model = $this->createModel($collection->getClassName(), $collData->getDatas());
+                        $model = $this->createModel($collection->getClassName(), $coll->getDatas());
 
-                    if ($collection->isMany()) {
-                        $result[$idRef][$collection->getField()][] = $model;
-                    } else {
-                        $result[$idRef][$collection->getField()] = $model;
+                        if ($collection->isMany()) {
+                            $result[$idRef][$field][] = $model;
+                        } else {
+                            $result[$idRef][$field] = $model;
+                        }
                     }
+
                 }
             }
 

@@ -38,6 +38,8 @@ class ArrayCollection extends CommonArrayCollection
      */
     public function __construct($model, array $fields, array $elements = array())
     {
+        parent::__construct();
+
         $this->model = $model;
 
         foreach ($fields as $managerName => $method) {
